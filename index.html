@@ -882,7 +882,7 @@ V.hostLive = () => {
       <div class="row"><button class="btn sm" id="dN">Cancel</button><button class="btn sm danger" id="dY">Delete forever</button></div></div>
     <div class="panel stack" id="resetBox" hidden><p>Delete every judge scorecard and team checkmark for <b>${esc(S.code)}</b>? Teams, questions and branding stay.</p>
       <div class="row"><button class="btn sm" id="rN">Keep everything</button><button class="btn sm danger" id="rY">Delete scores & progress</button></div></div>
-    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 30 days are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
+    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 7 days are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
   </div>`;
   on("#copy", async () => { try{ await navigator.clipboard.writeText(S.code); toast("Code copied"); }catch{ const r = document.createRange(); r.selectNodeContents($app.querySelector("#code")); getSelection().removeAllRanges(); getSelection().addRange(r); } });
   on("#board", () => { saveSession({role:"board"}); go("board"); });

@@ -20,4 +20,4 @@ Host passwords are stored hashed in a table the website can't read, and edits ar
 
 - **End event** (host tools) freezes scores and switches the leaderboard to final results. Judges and teams see the final standings and can't make changes. Hosts can reopen it.
 - **Delete event now** removes an ended event and all its data immediately.
-- A nightly job (3am UTC) deletes events that ended more than 7 days ago, and any event with no activity for 30 days.
+- A nightly job (3am UTC) deletes events that ended more than 7 days ago, and any event with no activity for 7 days.

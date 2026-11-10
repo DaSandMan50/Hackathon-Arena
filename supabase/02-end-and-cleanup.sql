@@ -6,7 +6,7 @@
 --   • Ended events are read-only: no new scores or checkmarks.
 --   • Every night at 3am UTC, the database deletes:
 --       - events that were ended more than 7 days ago
---       - events with no activity (no scores, checkmarks or edits) for 30 days
+--       - events with no activity (no scores, checkmarks or edits) for 7 days
 --     Deleting an event also deletes its scores, progress and host password.
 
 create extension if not exists pg_cron;
@@ -90,7 +90,7 @@ declare n integer;
 begin
   delete from events
   where (ended_at is not null and ended_at < now() - interval '7 days')
-     or (last_activity_at < now() - interval '30 days');
+     or (last_activity_at < now() - interval '7 days');
   get diagnostics n = row_count;
   return n;
 end $$;
