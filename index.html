@@ -466,9 +466,12 @@ async function eventExists(code){
   return !!must(r);
 }
 async function loadEvent(code){
-  const row = must(await S.sb.from("events").select("data").eq("code", code).maybeSingle());
+  let r = await S.sb.from("events").select("data,ended_at").eq("code", code).maybeSingle();
+  if(r.error && /ended_at/.test(r.error.message || "")) r = await S.sb.from("events").select("data").eq("code", code).maybeSingle();   // before migration 02 is run
+  const row = must(r);
   if(S.code !== code) return;
-  S.event = row ? row.data : null; S.eventLoaded = true; S.slow = false;
+  const wasEnded = S.ended; S.event = row ? row.data : null; S.ended = !!(row && row.ended_at); S.eventLoaded = true; S.slow = false;
+  if(S.event && S.ended && !wasEnded && S.view === "board" && boardState) boardState.mode = null;
   applyEventSkin(); eventChanged();
 }
 async function loadProgress(code){
@@ -490,7 +493,7 @@ function soon(key, fn, ms=120){ clearTimeout(debounced[key]); debounced[key] = s
 function connectEvent(code){
   if(S.code === code) return;
   disconnect();
-  Object.assign(S, {code, event:null, eventLoaded:false, progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false, slow:false, pendingProg:{}});
+  Object.assign(S, {code, event:null, ended:false, eventLoaded:false, progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false, slow:false, pendingProg:{}});
   const timer = setTimeout(() => { if(!S.eventLoaded){ S.slow = true; render(); } }, 10000);
   const all = () => {
     loadEvent(code).then(() => clearTimeout(timer)).catch(() => { clearTimeout(timer); if(!S.eventLoaded){ S.eventLoaded = true; S.event = null; render(); } });
@@ -573,6 +576,7 @@ function eventChanged(){
 }
 function dataChanged(kind, prev){
   if(S.view === "board"){ boardUpdate(kind, prev); return; }
+  if(S.view === "ended"){ V.ended(); return; }
   if(S.view === "teamBoard" && kind === "progress"){ V.teamBoard(); return; }
   if(["judgeTeams","hostLive","teamPick"].includes(S.view)) render();
 }
@@ -588,14 +592,25 @@ function needEvent(){
     return false;
   }
   if(!S.event){
-    $app.innerHTML = `<div class="wrap"><div class="hero"><p class="eyebrow">Event ${esc(S.code)}</p><h2>No event with that code</h2><p class="muted">Double-check the code with your host.</p><button class="btn brand" id="b">Try another code</button></div></div>`;
+    $app.innerHTML = `<div class="wrap center-v"><div class="hero"><p class="eyebrow">Event ${esc(S.code)}</p><h2>This event isn't available</h2><p class="muted">It may have been deleted, or the code is wrong. Double-check it with your host.</p><button class="btn brand" id="b">Try another code</button></div></div>`;
     on("#b", () => { leave(); go("join"); });
     return false;
   }
+  if(S.ended && ["teamPick","teamBoard","judgeName","judgeTeams","judgeScore","roles"].includes(S.view)){ V.ended(); return false; }
   return true;
 }
+function finalRanking(){ return teams().map((t,i) => ({t, i, sc:teamScore(t), p:teamProgress(t)})).sort((a,b) => b.sc.sum - a.sc.sum || b.p.pct - a.p.pct || a.i - b.i); }
 
 /* ---------- views ---------- */
+V.ended = () => {
+  const ranked = finalRanking();
+  $app.innerHTML = `${barHTML()}<div class="wrap">
+    <div class="stack" style="flex:none"><p class="eyebrow">Event ended</p><h2>Final results</h2><p class="muted">Judging and checklists are closed. Thanks for taking part.</p></div>
+    <div class="fill">${ranked.map((r,k) => { const c = teamColor(r.t, r.i); return `<div class="pick" style="cursor:default${k===0&&r.sc.sum>0?";border-color:rgba(var(--brand-rgb),.6)":""}"><span class="mono" style="width:28px;font-size:18px;color:${k===0&&r.sc.sum>0?"var(--brand)":"var(--muted)"}">${k+1}</span>
+      <span class="grow"><b style="color:${esc(c)}">${esc(r.t.name)}</b><small class="muted">${r.p.n}/${r.p.total} objectives · ${r.sc.judges} judge${r.sc.judges===1?"":"s"}</small></span><span class="mono" style="font-size:22px;color:var(--brand);font-weight:700">${r.sc.sum}</span></div>`; }).join("")}</div>
+    <button class="btn block" id="lv">Leave event</button></div>`;
+  on("#lv", () => { leave(); go("home"); });
+};
 const V = {};
 V.nodb = () => {
   $app.innerHTML = `<div class="wrap center-v"><div class="hero"><p class="eyebrow">Live event platform</p><h1>Hackathon <span>Arena</span></h1>
@@ -848,20 +863,26 @@ V.hostLive = () => {
   const judges = new Set(Object.values(S.scores).map(s => s.judge)).size;
   $app.innerHTML = `${barHTML()}<div class="wrap">
     <div class="stack" style="text-align:center;align-items:center;gap:8px;flex:none">
-      <p class="eyebrow">${S.viewCtx.fresh?"Your event is live":"Host tools"}</p>
+      <p class="eyebrow">${S.ended?"Event ended · final results are frozen":S.viewCtx.fresh?"Your event is live":"Host tools"}</p>
       <div class="row" style="justify-content:center;gap:18px;flex-wrap:nowrap">${qrSVG(joinURL(S.code)) ? `<div class="qr sm">${qrSVG(joinURL(S.code))}</div>` : ""}<div class="bigcode" id="code" style="font-size:clamp(34px,min(11vw,8vh),84px)">${esc(S.code)}</div></div>
       <p class="muted" style="max-width:40ch">Share this page's link. Everyone taps <b style="color:var(--cyan)">Join</b> and enters this code.</p>
       <div class="row" style="justify-content:center"><button class="btn sm" id="copy">Copy code</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
     </div>
-    <div class="panel" style="flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;gap:14px"><div class="spread"><h3>Live status</h3><span class="live">LIVE</span></div>
+    <div class="panel" style="flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;gap:14px"><div class="spread"><h3>${S.ended?"Final status":"Live status"}</h3>${S.ended?`<span class="pill">ENDED</span>`:`<span class="live">LIVE</span>`}</div>
       <div class="stats"><div><b>${ts.length}</b><small>teams</small></div><div><b>${qs.length}</b><small>questions</small></div><div><b>${judges}</b><small>judges</small></div><div><b>${submittedCount()}</b><small>scorecards</small></div></div>
       <div class="race fill">${ts.map((t,i) => { const p = teamProgress(t), sc = teamScore(t), c = teamColor(t,i); return `
         <div class="race-row"><span class="nm" style="color:${esc(c)}">${esc(t.name)}</span>${segsHTML(t,c)}<span class="mono" style="text-align:right;color:var(--brand)">${sc.sum}</span></div>`; }).join("")}</div>
     </div>
-    <div class="row"><button class="btn" id="edit" style="flex:1">Edit branding, teams & questions</button><button class="btn ghost" id="reset">Clear scores</button></div>
+    ${S.ended
+      ? `<div class="row"><button class="btn brand" id="reopen" style="flex:1">Reopen event</button><button class="btn ghost" id="del">Delete event now</button></div>`
+      : `<div class="row"><button class="btn" id="edit" style="flex:2">Edit event</button><button class="btn ghost" id="reset" style="flex:1">Clear scores</button><button class="btn ghost" id="end" style="flex:1">End event</button></div>`}
+    <div class="panel stack" id="endBox" hidden><p>End <b>${esc(S.event.name)}</b>? Scores freeze, the leaderboard switches to final results, and judges and teams can't make changes. You can reopen it any time in the next 7 days, then it's deleted automatically.</p>
+      <div class="row"><button class="btn sm" id="eN">Keep running</button><button class="btn sm danger" id="eY">End event</button></div></div>
+    <div class="panel stack" id="delBox" hidden><p>Permanently delete <b>${esc(S.code)}</b> with all its scores and progress? This can't be undone.</p>
+      <div class="row"><button class="btn sm" id="dN">Cancel</button><button class="btn sm danger" id="dY">Delete forever</button></div></div>
     <div class="panel stack" id="resetBox" hidden><p>Delete every judge scorecard and team checkmark for <b>${esc(S.code)}</b>? Teams, questions and branding stay.</p>
       <div class="row"><button class="btn sm" id="rN">Keep everything</button><button class="btn sm danger" id="rY">Delete scores & progress</button></div></div>
-    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Anyone with the code can join. No account needed."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
+    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 30 days are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
   </div>`;
   on("#copy", async () => { try{ await navigator.clipboard.writeText(S.code); toast("Code copied"); }catch{ const r = document.createRange(); r.selectNodeContents($app.querySelector("#code")); getSelection().removeAllRanges(); getSelection().addRange(r); } });
   on("#board", () => { saveSession({role:"board"}); go("board"); });
@@ -877,6 +898,20 @@ V.hostLive = () => {
       toast("Scores and progress cleared");
     }catch{ toast("Couldn't clear everything. Try again.", {color:"#FF6B7A"}); }
   });
+  const hostCall = async (fn, okMsg) => {
+    try{
+      const pw = hostPw(S.code);
+      const ok = pw ? must(await S.sb.rpc(fn, {p_code: S.code, p_password: pw})) : false;
+      if(!ok){ toast("Your host password didn't match. Sign in to host tools again.", {color:"#FF6B7A"}); return false; }
+      if(okMsg) toast(okMsg); return true;
+    }catch(e){ console.warn(e); toast("Couldn't reach the database. Try again.", {color:"#FF6B7A"}); return false; }
+  };
+  const toggle = (id, show) => { const el = $app.querySelector(id); if(el) el.hidden = !show; };
+  on("#end", () => toggle("#endBox", true)); on("#eN", () => toggle("#endBox", false));
+  on("#eY", async () => { if(await hostCall("end_event", "Event ended. Final results are on the leaderboard.")){ S.ended = true; render(); } });
+  on("#reopen", async () => { if(await hostCall("reopen_event", "Event reopened. Judging and checklists are live again.")){ S.ended = false; render(); } });
+  on("#del", () => toggle("#delBox", true)); on("#dN", () => toggle("#delBox", false));
+  on("#dY", async () => { const code = S.code; if(await hostCall("delete_event", "Event deleted")){ store.del("host:"+code); leave(); go("home"); } });
   on("#exit", () => { store.del("host:"+S.code); leave(); go("home"); });
 };
 
@@ -1093,7 +1128,7 @@ V.board = () => {
   const org = orgName();
   $app.innerHTML = `<div class="lb">
     <div class="lb-top"><div class="lb-id"><span class="mark">${esc(initials(org || S.event.name))}</span><div class="stack" style="gap:6px;min-width:0">
-      <span class="live">LIVE${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1></div></div>
+      <span class="live" id="lbstatus">${S.ended?"FINAL RESULTS":"LIVE"}${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1></div></div>
       <div class="joinbox">${qrSVG(joinURL(S.code)) ? `<div class="qr" aria-label="QR code to join this event">${qrSVG(joinURL(S.code))}</div>` : ""}<div><p class="eyebrow" style="color:var(--muted);margin-bottom:6px">Scan or enter code</p><div class="mono">${esc(S.code)}</div><div class="joinurl">${esc(siteURL().replace(/^https?:\/\//,""))}</div></div></div></div>
     <div class="stats" id="stats"></div>
     <div id="stage" style="flex:1;display:flex;flex-direction:column"></div></div>
@@ -1141,7 +1176,8 @@ function boardRender(first, eventEdit){
   const objTotal = ts.reduce((a,t) => a + (t.objectives||[]).length, 0), objDone = ts.reduce((a,t) => a + doneSet(t).size, 0);
   const st = document.getElementById("stats");
   if(st) st.innerHTML = `<div><b>${ts.length}</b><small>teams</small></div><div><b>${objDone}<span class="muted" style="font-size:.6em">/${objTotal}</span></b><small>objectives done</small></div><div><b>${ts.filter(t => teamProgress(t).finished).length}</b><small>builds submitted</small></div><div><b>${n}</b><small>scorecards in</small></div>`;
-  const mode = n ? "board" : "idle";
+  const lbs = document.getElementById("lbstatus"); if(lbs) lbs.textContent = (S.ended ? "FINAL RESULTS" : "LIVE") + (orgName() ? " · " + orgName().toUpperCase() : "");
+  const mode = (n || S.ended) ? "board" : "idle";
   if(mode !== boardState.mode){
     const wasIdle = boardState.mode === "idle";
     boardState.mode = mode; boardState.rows.clear(); boardState.shown.clear();
