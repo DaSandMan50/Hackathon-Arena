@@ -552,6 +552,7 @@ async function checkHosted(){
   const list = store.get("hosted", []); if(!list.length) return;
   let rows;
   try{ rows = must(await S.sb.from("events").select("code,ended_at,last_activity_at").in("code", list.map(h => h.code))); }catch{ return; }
+  if(!Array.isArray(rows)) return;
   const found = new Map(rows.map(r => [r.code, r]));
   const gone = list.filter(h => !found.has(h.code));
   if(gone.length){
