@@ -4,7 +4,7 @@ Live hackathon judging, team checklists and an animated projector leaderboard. O
 
 ## Go live
 
-1. **Database.** In Supabase, open SQL Editor → New query, and run the files in `supabase/` in order: `01-setup.sql`, `02-end-and-cleanup.sql`, `03-inactive-7-days.sql`, `04-judge-codes.sql`, `05-keep-event.sql`.
+1. **Database.** In Supabase, open SQL Editor → New query, and run the files in `supabase/` in order: `01-setup.sql`, `02-end-and-cleanup.sql`, `03-inactive-7-days.sql`, `04-judge-codes.sql`, `05-keep-event.sql`, `06-inactive-14-days.sql`.
 2. **Key.** In Supabase, open Project Settings → API Keys and copy the **anon / publishable** key. Paste it into `index.html` where it says `PASTE_YOUR_ANON_KEY_HERE`. (This key is meant to be public. Never paste the `service_role` / secret key.)
 3. **Publish.** Create a public GitHub repo, upload `index.html`, then open Settings → Pages → Source: "Deploy from a branch" → `main` / root → Save. The site is live at `https://<your-username>.github.io/<repo>/` within a couple of minutes.
 
@@ -21,5 +21,5 @@ Host passwords are stored hashed in a table the website can't read, and edits ar
 
 - **End event** (host tools) freezes scores and switches the leaderboard to final results. Judges and teams see the final standings and can't make changes. Hosts can reopen it.
 - **Delete event now** removes an ended event and all its data immediately.
-- A nightly job (3am UTC) deletes events that ended more than 7 days ago, and any event with no activity for 7 days.
-- Hosts see an "Auto-deletes in…" countdown in Host tools with a **Keep event** button that restarts the 7-day timer. When an event is within 2 days of deletion, the host gets a popup, and if one of their events has already been deleted they're told the next time they open the site.
+- A nightly job (3am UTC) deletes events that ended more than 7 days ago, and any event with no activity for 14 days.
+- Hosts see an "Auto-deletes in…" countdown in Host tools with a **Keep event** button that restarts the deletion timer. When an event is within 2 days of deletion, the host gets a popup, and if one of their events has already been deleted they're told the next time they open the site.

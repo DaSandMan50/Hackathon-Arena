@@ -525,7 +525,7 @@ function disconnect(){ S.unsubs.forEach(u => { try{u()}catch{} }); S.unsubs = []
 const hostPw = code => store.get("host:"+code, null);
 const judgeCode = code => store.get("judge:"+code, null);
 const DAY = 864e5;
-function expiryOf(row){ const base = row.ended_at || row.last_activity_at; return base ? new Date(new Date(base).getTime() + 7*DAY) : null; }
+function expiryOf(row){ if(row.ended_at) return new Date(new Date(row.ended_at).getTime() + 7*DAY); return row.last_activity_at ? new Date(new Date(row.last_activity_at).getTime() + 14*DAY) : null; }
 function untilText(d){
   const ms = d - Date.now(); if(ms <= 0) return "any moment now";
   const h = Math.round(ms/36e5); if(h < 24) return `in about ${h} hour${h===1?"":"s"}`;
@@ -544,7 +544,7 @@ function modal({title, body, actions, warn}){
 }
 async function keepEvent(code){
   const pw = hostPw(code); if(!pw){ toast("Sign in to Host tools with your code and password to keep this event."); return false; }
-  try{ const ok = must(await S.sb.rpc("keep_event", {p_code: code, p_password: pw})); if(!ok){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return false; } toast("Kept. The 7-day countdown starts over."); if(S.code === code) loadEvent(code).catch(()=>{}); return true; }
+  try{ const ok = must(await S.sb.rpc("keep_event", {p_code: code, p_password: pw})); if(!ok){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return false; } toast("Kept. The countdown starts over."); if(S.code === code) loadEvent(code).catch(()=>{}); return true; }
   catch(e){ console.warn(e); toast("Couldn't reach the database. Try again.", {color:"#FF6B7A"}); return false; }
 }
 /* tell hosts about their events: deleted ones, and ones about to be deleted */
@@ -557,7 +557,7 @@ async function checkHosted(){
   if(gone.length){
     gone.forEach(h => { forgetHosted(h.code); store.del("host:"+h.code); store.del("judge:"+h.code); });
     modal({warn:true, title:`Your event${gone.length>1?"s were":" was"} deleted`,
-      body:`<p>${gone.length>1?"These events":"This event"} reached the end of ${gone.length>1?"their":"its"} 7-day limit and ${gone.length>1?"were":"was"} removed automatically, along with all scores and checklists:</p><ul>${gone.map(h => `<li><b style="color:var(--text)">${esc(h.name || "Untitled event")}</b> · ${esc(h.code)}</li>`).join("")}</ul><p>Events are deleted 7 days after they end, or after 7 days with no activity. You can create a new one any time.</p>`,
+      body:`<p>${gone.length>1?"These events":"This event"} hit the automatic clean-up limit and ${gone.length>1?"were":"was"} removed automatically, along with all scores and checklists:</p><ul>${gone.map(h => `<li><b style="color:var(--text)">${esc(h.name || "Untitled event")}</b> · ${esc(h.code)}</li>`).join("")}</ul><p>Events are deleted 7 days after they end, or after 2 weeks with no activity. You can create a new one any time.</p>`,
       actions:[{label:"Got it", primary:true}]});
     return;
   }
@@ -568,7 +568,7 @@ async function checkHosted(){
   try{ sessionStorage.setItem("pha:warned", JSON.stringify([...shown, ...fresh.map(h => h.code)])); }catch{}
   const h = fresh[0];
   modal({warn:true, title:"Your event will be deleted soon",
-    body:`<p><b style="color:var(--text)">${esc(h.name || "Your event")}</b> (${esc(h.code)}) will be deleted automatically ${untilText(h.exp)}, around ${fmtDate(h.exp)}. All its scores and checklists go with it.</p><p>Keep it if you still need it. That restarts the 7-day countdown.</p>`,
+    body:`<p><b style="color:var(--text)">${esc(h.name || "Your event")}</b> (${esc(h.code)}) will be deleted automatically ${untilText(h.exp)}, around ${fmtDate(h.exp)}. All its scores and checklists go with it.</p><p>Keep it if you still need it. That restarts the countdown.</p>`,
     actions:[{label:"Let it expire"}, {label:"Keep event", primary:true, run: () => keepEvent(h.code)}]});
 }
 const siteURL = () => location.origin + location.pathname;
@@ -945,7 +945,7 @@ V.hostLive = () => {
       <div class="row"><button class="btn sm" id="dN">Cancel</button><button class="btn sm danger" id="dY">Delete forever</button></div></div>
     <div class="panel stack" id="resetBox" hidden><p>Delete every judge scorecard and team checkmark for <b>${esc(S.code)}</b>? Teams, questions and branding stay.</p>
       <div class="row"><button class="btn sm" id="rN">Keep everything</button><button class="btn sm danger" id="rY">Delete scores & progress</button></div></div>
-    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 7 days are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
+    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 2 weeks are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
   </div>`;
   on("#copy", async () => { try{ await navigator.clipboard.writeText(S.code); toast("Code copied"); }catch{ const r = document.createRange(); r.selectNodeContents($app.querySelector("#code")); getSelection().removeAllRanges(); getSelection().addRange(r); } });
   on("#board", () => { saveSession({role:"board"}); go("board"); });
