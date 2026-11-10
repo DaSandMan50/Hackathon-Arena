@@ -249,6 +249,56 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .milestone{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid color-mix(in srgb,var(--tc) 45%,transparent);background:color-mix(in srgb,var(--tc) 10%,var(--panel));animation:tin .6s var(--spring)}
 .milestone b{font-family:var(--f-display);font-size:17px}
 
+/* Countdown timer */
+.tmr{display:flex;flex-direction:column;gap:6px;--tcol:var(--brand)}
+.tmr .lab{font-family:var(--f-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+.tmr .digits{display:flex;align-items:center;gap:4px;font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.tmr .d{position:relative;display:grid;place-items:center;width:1.05em;height:1.4em;border-radius:.18em;background:linear-gradient(180deg,var(--panel-2),var(--field));border:1px solid var(--line-2);color:var(--tcol);overflow:hidden;box-shadow:inset 0 -1px 0 rgba(0,0,0,.35)}
+.tmr .d::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.35)}
+.tmr .d.tick span{animation:digitIn .35s var(--spring)}
+@keyframes digitIn{from{transform:translateY(-70%);opacity:0}}
+.tmr .sep{color:var(--muted);width:.35em;text-align:center;animation:pulse 1s steps(1) infinite}
+.tmr .tbar{height:4px;border-radius:2px;background:var(--track);overflow:hidden}
+.tmr .tbar i{display:block;height:100%;background:var(--tcol);transition:width 1s linear,background .3s;box-shadow:0 0 calc(10px * var(--glow)) var(--tcol)}
+.tmr.warn{--tcol:#FFB020}
+.tmr.crit{--tcol:var(--bad)}
+.tmr.crit .digits{animation:critPulse 1s ease-in-out infinite}
+@keyframes critPulse{50%{transform:scale(1.04);filter:drop-shadow(0 0 14px var(--bad))}}
+.tmr.paused .digits{opacity:.55}
+.tmr.done .digits{animation:doneFlash .8s steps(2) infinite}
+@keyframes doneFlash{50%{opacity:.25}}
+.tmr.big .digits{font-size:clamp(26px,min(4.4vw,6.6vh),68px)}
+.tmr.mid .digits{font-size:clamp(22px,4.2vh,34px)}
+.tmr.idle{display:none}
+.tmr-panel{flex:none;padding:12px 14px;border-radius:var(--r);border:1px solid var(--line-2);background:color-mix(in srgb,var(--panel) 90%,transparent)}
+.tmr-panel.idle{display:none}
+.lb-timer{display:flex;align-items:center}
+.lb-timer .tmr{min-width:0}
+/* Hidden scores + reveal */
+.lscore .num.hid{color:var(--dim);letter-spacing:.06em;animation:hidShimmer 2.4s ease-in-out infinite}
+@keyframes hidShimmer{50%{opacity:.45}}
+.lrow.veil .lscore .num{color:transparent;text-shadow:0 0 18px rgba(var(--brand-rgb),.5)}
+.lrow.flip{animation:rowFlip .9s var(--spring)}
+@keyframes rowFlip{0%{transform:rotateX(80deg);filter:brightness(2)}100%{transform:none}}
+.lrow.winner{border-color:var(--brand);box-shadow:0 0 0 2px rgba(var(--brand-rgb),.6),0 0 120px -10px rgba(var(--brand-rgb),.9);animation:winnerGlow 1.6s ease-in-out infinite}
+@keyframes winnerGlow{50%{box-shadow:0 0 0 2px rgba(var(--brand-rgb),.9),0 0 160px 0 rgba(var(--brand-rgb),1)}}
+.crown{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;padding:4px 10px;border-radius:99px;background:var(--brand);color:var(--on-brand);font-weight:700;animation:tin .6s var(--spring);z-index:3}
+.reveal-ov{position:fixed;inset:0;z-index:57;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 50% 45%,rgba(var(--brand-rgb),.22),color-mix(in srgb,var(--ink) 94%,transparent) 65%);backdrop-filter:blur(8px);animation:fadeIn .4s ease;padding:24px;overflow:hidden}
+.reveal-ov .inner{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vh,18px);max-width:640px;width:100%;max-height:100%;overflow-y:auto}
+.reveal-ov .kick{font-family:var(--f-mono);letter-spacing:.3em;text-transform:uppercase;color:var(--brand);font-size:clamp(12px,1.6vh,15px)}
+.reveal-ov .count{font-family:var(--f-display);font-weight:800;font-size:calc(clamp(110px,min(32vw,34vh),300px) * var(--dscale));line-height:1;color:var(--text);text-shadow:0 0 calc(80px * var(--glow)) rgba(var(--brand-rgb),.7);animation:countPop .8s var(--spring)}
+@keyframes countPop{0%{transform:scale(2.2);opacity:0;filter:blur(10px)}40%{opacity:1;filter:none}100%{transform:scale(1)}}
+.reveal-ov .rankbig{font-family:var(--f-display);font-weight:800;font-size:calc(clamp(72px,min(22vw,18vh),180px) * var(--dscale));line-height:.9;color:var(--tc);text-shadow:0 0 calc(60px * var(--glow)) var(--tc);animation:countPop .9s var(--spring)}
+.qbars{display:flex;flex-direction:column;gap:10px;width:100%;text-align:left}
+.qbar{display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:4px 12px;align-items:center}
+.qbar .q{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qbar .v{font-family:var(--f-mono);font-weight:700;text-align:right;color:var(--text);grid-row:span 2}
+.qbar .t{height:10px;border-radius:5px;background:var(--track);overflow:hidden}
+.qbar .t i{display:block;height:100%;width:0;border-radius:5px;background:var(--tc);transition:width 1.1s var(--ease)}
+.qbar.best .q{color:var(--good)}.qbar.worst .q{color:#FFB020}
+.qbar .tag{font-family:var(--f-mono);font-size:9px;letter-spacing:.12em;margin-left:6px}
+.results{flex:none;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--r);border:1px solid rgba(var(--brand-rgb),.45);background:linear-gradient(160deg,rgba(var(--brand-rgb),.09),var(--panel) 55%)}
+.hidnote{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--muted)}
 /* Modal */
 .modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
 .modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
@@ -425,7 +475,7 @@ function applyBrand(hex){
 
 /* ---------- state ---------- */
 const S = {
-  pendingProg:{},
+  pendingProg:{}, revealed:false, timer:null, scoreCounts:{}, clockOffset:0,
   sb:null, dbMissing:false,
   code:null, event:null, eventLoaded:false, slow:false,
   progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false,
@@ -464,6 +514,8 @@ async function boot(){
     if(!window.supabase || SUPABASE_ANON_KEY.startsWith("PASTE")) throw new Error("not configured");
     S.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{persistSession:false}, realtime:{params:{eventsPerSecond:20}}});
   }catch{ S.dbMissing = true; route(); return; }
+  syncClock();
+  setInterval(tickTimers, 250);
   const m = location.hash.match(/^#join-([A-Za-z0-9]{4,8})$/);
   if(m){
     history.replaceState(null, "", siteURL());
@@ -479,14 +531,33 @@ async function eventExists(code){
   const r = await S.sb.from("events").select("code").eq("code", code).maybeSingle();
   return !!must(r);
 }
+const EVENT_COLS = ["data,ended_at,last_activity_at,timer,revealed", "data,ended_at,last_activity_at", "data"];
 async function loadEvent(code){
-  let r = await S.sb.from("events").select("data,ended_at,last_activity_at").eq("code", code).maybeSingle();
-  if(r.error && /ended_at|last_activity_at/.test(r.error.message || "")) r = await S.sb.from("events").select("data").eq("code", code).maybeSingle();   // before migration 02 is run
+  let r;
+  for(const cols of EVENT_COLS){
+    r = await S.sb.from("events").select(cols).eq("code", code).maybeSingle();
+    if(!r.error || !/column/i.test(r.error.message || "")) break;      // older database: try fewer columns
+  }
   const row = must(r);
   if(S.code !== code) return;
-  const wasEnded = S.ended; S.event = row ? row.data : null; S.ended = !!(row && row.ended_at); S.expiresAt = row ? expiryOf(row) : null; S.eventLoaded = true; S.slow = false;
+  const sig = JSON.stringify(row);
+  if(S.eventLoaded && sig === S.eventSig) return;                      // nothing changed (e.g. activity timestamp only)
+  const first = !S.eventLoaded, wasEnded = S.ended, wasRevealed = S.revealed, wasData = JSON.stringify(S.event), wasTimer = JSON.stringify(S.timer);
+  S.eventSig = sig;
+  S.event = row ? row.data : null; S.ended = !!(row && row.ended_at); S.expiresAt = row ? expiryOf(row) : null;
+  S.timer = row && row.timer ? row.timer : null;
+  S.revealed = row ? (row.revealed === undefined ? true : !!row.revealed) : false;     // databases without migration 07 always show scores
+  S.eventLoaded = true; S.slow = false;
   if(S.event && S.ended && !wasEnded && S.view === "board" && boardState) boardState.mode = null;
-  applyEventSkin(); eventChanged();
+  applyEventSkin();
+  if(!first && S.revealed !== wasRevealed){
+    await loadScores(code).catch(() => {});
+    if(S.revealed) startReveal(); else { if(boardState) boardState.mode = null; render(); }
+    return;
+  }
+  const onlyTimerOrStamp = !first && wasEnded === S.ended && wasData === JSON.stringify(S.event);
+  if(onlyTimerOrStamp){ if(wasTimer !== JSON.stringify(S.timer)) timerChanged(); else tickTimers(true); return; }
+  eventChanged();
 }
 async function loadProgress(code){
   const rows = must(await S.sb.from("progress").select("team_id,done,finished").eq("event_code", code));
@@ -496,25 +567,34 @@ async function loadProgress(code){
   for(const [team, pend] of Object.entries(S.pendingProg)){ p[team] = {...(p[team]||{done:{},finished:false})}; p[team].done = {...p[team].done, ...pend.done}; if(pend.finished !== undefined) p[team].finished = pend.finished; }
   const prev = S.progress; S.progress = p; dataChanged("progress", prev); S.progressLoaded = true;
 }
+const mapCards = rows => { const sc = {}; (rows||[]).forEach(r => sc[r.id] = {judge:r.judge, teamId:r.team_id, scores:r.scores || {}, submitted:!!r.submitted, total:r.total}); return sc; };
 async function loadScores(code){
-  const rows = must(await S.sb.from("scores").select("id,judge,team_id,scores,submitted,total").eq("event_code", code));
+  let sc = {}, counts = {};
+  if(S.revealed){
+    sc = mapCards(must(await S.sb.from("scores").select("id,judge,team_id,scores,submitted,total").eq("event_code", code)));
+    Object.values(sc).forEach(c => { if(c.submitted) counts[c.teamId] = (counts[c.teamId]||0) + 1; });
+  } else {
+    must(await S.sb.rpc("score_counts", {p_code: code})).forEach(r => counts[r.team_id] = r.judges);
+    if(S.session.role === "host" && hostPw(code)) sc = mapCards(must(await S.sb.rpc("host_scores", {p_code: code, p_password: hostPw(code)})));
+    else if(S.session.role === "judge" && judgeCode(code) && S.session.judgeName) sc = mapCards(must(await S.sb.rpc("judge_cards", {p_code: code, p_judge_code: judgeCode(code), p_prefix: slug(S.session.judgeName)})));
+  }
   if(S.code !== code) return;
-  const sc = {}; rows.forEach(r => sc[r.id] = {judge:r.judge, teamId:r.team_id, scores:r.scores || {}, submitted:!!r.submitted, total:r.total});
-  const prev = S.scores; S.scores = sc; dataChanged("scores", prev); S.scoresLoaded = true;
+  const prevCounts = S.scoreCounts; S.scoreCounts = counts;
+  const prev = S.scores; S.scores = sc; dataChanged("scores", prev, prevCounts); S.scoresLoaded = true;
 }
 const debounced = {};
 function soon(key, fn, ms=120){ clearTimeout(debounced[key]); debounced[key] = setTimeout(fn, ms); }
 function connectEvent(code){
   if(S.code === code) return;
   disconnect();
-  Object.assign(S, {code, event:null, ended:false, eventLoaded:false, progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false, slow:false, pendingProg:{}});
+  Object.assign(S, {code, event:null, ended:false, revealed:false, timer:null, scoreCounts:{}, eventSig:null, eventLoaded:false, progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false, slow:false, pendingProg:{}});
   const timer = setTimeout(() => { if(!S.eventLoaded){ S.slow = true; render(); } }, 10000);
   const all = () => {
     loadEvent(code).then(() => clearTimeout(timer)).catch(() => { clearTimeout(timer); if(!S.eventLoaded){ S.eventLoaded = true; S.event = null; render(); } });
     loadProgress(code).catch(() => {}); loadScores(code).catch(() => {});
   };
   const ch = S.sb.channel("event-" + code)
-    .on("postgres_changes", {event:"*", schema:"public", table:"events",   filter:`code=eq.${code}`},       () => soon("ev", () => loadEvent(code).catch(()=>{})))
+    .on("postgres_changes", {event:"*", schema:"public", table:"events",   filter:`code=eq.${code}`},       () => { soon("ev", () => loadEvent(code).catch(()=>{})); soon("sc", () => loadScores(code).catch(()=>{}), 250); })
     .on("postgres_changes", {event:"*", schema:"public", table:"progress", filter:`event_code=eq.${code}`}, () => soon("pr", () => loadProgress(code).catch(()=>{})))
     .on("postgres_changes", {event:"*", schema:"public", table:"scores",   filter:`event_code=eq.${code}`}, () => soon("sc", () => loadScores(code).catch(()=>{})))
     .subscribe(status => { if(status === "SUBSCRIBED") all(); });
@@ -605,7 +685,12 @@ function teamScore(t){
   for(const s of Object.values(S.scores)) if(s.teamId === t.id && s.submitted && typeof s.total === "number"){ sum += s.total; judges++; }
   return {sum, judges};
 }
-const submittedCount = () => Object.values(S.scores).filter(s => s.submitted).length;
+const submittedCount = () => Object.values(S.scoreCounts).reduce((a,n) => a + n, 0);
+const judgesFor = t => S.scoreCounts[t.id] || 0;
+function questionAverages(t){
+  const cards = Object.values(S.scores).filter(c => c.teamId === t.id && c.submitted);
+  return questions().map(q => { const vals = cards.map(c => c.scores[q.id]).filter(v => typeof v === "number"); return {q, avg: vals.length ? vals.reduce((a,v) => a+v, 0)/vals.length : null}; });
+}
 function segsHTML(t, color, popIds){
   const d = doneSet(t), objs = t.objectives || [];
   if(!objs.length) return `<div class="segs empty" style="--tc:${esc(color)}"><i></i></div>`;
@@ -639,8 +724,9 @@ function eventChanged(){
   if(S.view === "create") return;           // don't clobber a form in progress
   render();
 }
-function dataChanged(kind, prev){
-  if(S.view === "board"){ boardUpdate(kind, prev); return; }
+function dataChanged(kind, prev, prevCounts){
+  if(S.view === "board"){ boardUpdate(kind, prev, prevCounts); return; }
+  if(S.view === "teamBoard" && kind === "scores"){ if(JSON.stringify(prevCounts) !== JSON.stringify(S.scoreCounts) || S.revealed) V.teamBoard(); return; }
   if(S.ended && !["board","hostLive","create","home","join","hostLogin"].includes(S.view)){ render(); return; }
   if(S.view === "teamBoard" && kind === "progress"){ V.teamBoard(); return; }
   if(["judgeTeams","hostLive","teamPick"].includes(S.view)) render();
@@ -671,9 +757,9 @@ const V = {};
 V.ended = () => {
   const ranked = finalRanking();
   $app.innerHTML = `${barHTML()}<div class="wrap">
-    <div class="stack" style="flex:none"><p class="eyebrow">Event ended</p><h2>Final results</h2><p class="muted">Judging and checklists are closed. Thanks for taking part.</p></div>
+    <div class="stack" style="flex:none"><p class="eyebrow">Event ended</p><h2>${S.revealed ? "Final results" : "Results coming soon"}</h2><p class="muted">${S.revealed ? "Judging and checklists are closed. Thanks for taking part." : "Judging and checklists are closed. The host will reveal the scores shortly."}</p></div>
     <div class="fill">${ranked.map((r,k) => { const c = teamColor(r.t, r.i); return `<div class="pick" style="cursor:default${k===0&&r.sc.sum>0?";border-color:rgba(var(--brand-rgb),.6)":""}"><span class="mono" style="width:28px;font-size:18px;color:${k===0&&r.sc.sum>0?"var(--brand)":"var(--muted)"}">${k+1}</span>
-      <span class="grow"><b style="color:${esc(c)}">${esc(r.t.name)}</b><small class="muted">${r.p.n}/${r.p.total} objectives · ${r.sc.judges} judge${r.sc.judges===1?"":"s"}</small></span><span class="mono" style="font-size:22px;color:var(--brand);font-weight:700">${r.sc.sum}</span></div>`; }).join("")}</div>
+      <span class="grow"><b style="color:${esc(c)}">${esc(r.t.name)}</b><small class="muted">${r.p.n}/${r.p.total} objectives · ${judgesFor(r.t)} judge${judgesFor(r.t)===1?"":"s"}</small></span><span class="mono" style="font-size:22px;color:var(--brand);font-weight:700">${S.revealed ? r.sc.sum : "?"}</span></div>`; }).join("")}</div>
     <button class="btn block" id="lv">Leave event</button></div>`;
   on("#lv", () => { leave(); go("home"); });
 };
@@ -938,8 +1024,12 @@ V.hostLive = () => {
     ${S.expiresAt ? `<div class="expiry ${S.expiresAt - Date.now() < 2*DAY ? "soon" : ""}"><span>${S.expiresAt - Date.now() < 2*DAY ? "⚠ " : ""}Auto-deletes ${untilText(S.expiresAt)} (${fmtDate(S.expiresAt)}) ${S.ended ? "since the event ended" : "if there's no activity"}.</span><button class="btn sm ghost" id="keep">Keep event</button></div>` : ""}
     <div class="panel spread" style="padding-block:12px"><div><p class="eyebrow" style="color:var(--muted)">Judge code · share only with judges</p><div class="mono" id="jcode" style="font-size:clamp(22px,4vh,30px);letter-spacing:.2em;color:var(--brand);font-weight:700">${S.judgeCodeFor && S.judgeCodeFor.code === S.code ? esc(S.judgeCodeFor.value) : "••••••"}</div></div>
       <div class="row"><button class="btn sm" id="jcopy">Copy</button><button class="btn sm ghost" id="jnew">New code</button></div></div>
+    <div class="panel spread" style="padding-block:12px;gap:14px"><div style="flex:1;min-width:150px">${timerState().status === "idle" ? `<p class="eyebrow" style="color:var(--muted)">Countdown</p><p class="muted" style="font-size:13px">No timer running</p>` : timerHTML("mid")}</div>
+      <div class="row"><button class="btn sm ${timerState().status === "idle" ? "brand" : ""}" id="tmrbtn">${timerState().status === "idle" || timerState().status === "done" ? "Start timer" : "Timer controls"}</button>
+      <button class="btn sm ${S.revealed ? "ghost" : "brand"}" id="reveal">${S.revealed ? "Hide scores" : "Reveal scores"}</button></div></div>
     <div class="panel" style="flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;gap:14px"><div class="spread"><h3>${S.ended?"Final status":"Live status"}</h3>${S.ended?`<span class="pill">ENDED</span>`:`<span class="live">LIVE</span>`}</div>
       <div class="stats"><div><b>${ts.length}</b><small>teams</small></div><div><b>${qs.length}</b><small>questions</small></div><div><b>${judges}</b><small>judges</small></div><div><b>${submittedCount()}</b><small>scorecards</small></div></div>
+      ${S.revealed ? "" : `<p class="hidnote">Scores are hidden from everyone until you reveal them. Only you can see these totals.</p>`}
       <div class="race fill">${ts.map((t,i) => { const p = teamProgress(t), sc = teamScore(t), c = teamColor(t,i); return `
         <div class="race-row"><span class="nm" style="color:${esc(c)}">${esc(t.name)}</span>${segsHTML(t,c)}<span class="mono" style="text-align:right;color:var(--brand)">${sc.sum}</span></div>`; }).join("")}</div>
     </div>
@@ -986,6 +1076,23 @@ V.hostLive = () => {
     }catch{ toast("Couldn't reach the database. Try again.", {color:"#FF6B7A"}); }
   });
   on("#keep", () => keepEvent(S.code));
+  tickTimers();
+  on("#tmrbtn", timerModal);
+  on("#reveal", () => {
+    const counts = teams().map(t => `<li><b style="color:var(--text)">${esc(t.name)}</b> · ${judgesFor(t)} judge scorecard${judgesFor(t)===1?"":"s"}</li>`).join("");
+    if(S.revealed) return modal({title:"Hide scores again?", body:`<p>The leaderboard and team screens go back to showing only how many judges have scored. You can reveal again any time.</p>`,
+      actions:[{label:"Cancel"}, {label:"Hide scores", primary:true, run: () => setReveal(false)}]});
+    modal({title:"Reveal the scores?", body:`<p>The leaderboard plays the reveal and every team sees their rank and score breakdown.</p><ul>${counts}</ul><p>Tip: open the leaderboard on the projector first for the full effect.</p>`,
+      actions:[{label:"Not yet"}, {label:"Reveal scores", primary:true, run: () => setReveal(true)}]});
+  });
+  async function setReveal(v){
+    try{
+      const ok = must(await S.sb.rpc("set_reveal", {p_code: S.code, p_password: hostPw(S.code), p_revealed: v}));
+      if(!ok){ toast("Your host password didn't match. Sign in to host tools again.", {color:"#FF6B7A"}); return; }
+      S.revealed = v; store.del("revealSeen:" + S.code); await loadScores(S.code).catch(()=>{}); render();
+      toast(v ? "Scores revealed. The leaderboard is playing the reveal now." : "Scores hidden again.");
+    }catch(e){ console.warn(e); toast("Couldn't reach the database. If you just updated the site, run migration 07 in Supabase.", {color:"#FF6B7A", ms:6000}); }
+  }
   if(S.expiresAt && S.expiresAt - Date.now() < 2*DAY) setTimeout(checkHosted, 300);
   on("#end", () => modal({warn:true, title:"End this event?", body:`<p>End <b style="color:var(--text)">${esc(S.event.name)}</b>? Scores freeze, the leaderboard switches to final results, and judges and teams can't make changes.</p><p>You can reopen it any time in the next 7 days. After that it's deleted automatically.</p>`,
     actions:[{label:"Keep running"}, {label:"End event", danger:true, run: async () => { if(await hostCall("end_event", "Event ended. Final results are on the leaderboard.")){ S.ended = true; render(); } }}]}));
@@ -1030,8 +1137,9 @@ V.teamBoard = () => {
   const myRank = sorted.findIndex(r => r.x.id === t.id) + 1;
   $app.innerHTML = `${barHTML()}<div class="wrap" style="--tc:${esc(color)}">
     <div class="spread" style="flex:none"><button class="back" id="bk">← Switch team</button><span class="saved" style="opacity:0"></span></div>
-    <div class="ring-wrap" style="flex:none">${ringSVG(p.pct, color, fresh.size>0)}<div class="stack" style="gap:4px;min-width:0"><p class="eyebrow" style="color:${esc(color)}">${p.finished?"Build submitted":"Your team"}</p><h2>${esc(t.name)}</h2><p class="muted">${p.n} of ${p.total} objectives · #${myRank} of ${ts.length} in the race</p></div></div>
-    <div class="fill">${objs.length ? objs.map((o,k) => `
+    <div class="ring-wrap" style="flex:none">${ringSVG(p.pct, color, fresh.size>0)}<div class="stack" style="gap:4px;min-width:0"><p class="eyebrow" style="color:${esc(color)}">${p.finished?"Build submitted":"Your team"}</p><h2>${esc(t.name)}</h2><p class="muted">${p.n} of ${p.total} objectives · #${myRank} of ${ts.length} in the race</p>${S.revealed ? "" : `<p class="hidnote">${judgesFor(t)} judge scorecard${judgesFor(t)===1?"":"s"} in · scores revealed by the host</p>`}</div></div>
+    <div class="tmr-panel">${timerHTML("mid")}</div>
+    <div class="fill">${S.revealed && judgesFor(t) ? teamResultsHTML(t, color) : ""}${objs.length ? objs.map((o,k) => `
       <button class="task ${done.has(o.id)?"on":""} ${fresh.has(o.id)?"just":""}" data-id="${esc(o.id)}" aria-pressed="${done.has(o.id)}"><span class="box"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span><span class="tt">${esc(o.text)}<span class="n" style="display:block">Objective ${k+1} of ${objs.length}</span></span>${fresh.has(o.id)?`<span class="plus">+1</span>`:""}</button>`).join("")
       : `<div class="panel muted">Your host hasn't added objectives for this team yet. They'll appear here automatically.</div>`}</div>
     ${objs.length && !p.finished ? `<button class="btn ${p.n===p.total?"brand ready":""} block" id="fin" ${p.n===p.total?"":"disabled"}>${p.n===p.total?"We're done. Submit our build":`${p.total-p.n} objective${p.total-p.n===1?"":"s"} to go`}</button>` : ""}
@@ -1040,6 +1148,8 @@ V.teamBoard = () => {
       <div class="race fill" style="gap:8px">${sorted.map(({x,i,p}) => { const c = teamColor(x,i); return `<div class="race-row ${x.id===t.id?"me":""}"><span class="nm" style="color:${x.id===t.id?esc(c):"var(--text)"}">${esc(x.name)}${p.finished?" ✓":""}</span>${segsHTML(x,c)}<span class="mono muted" style="text-align:right">${Math.round(p.pct*100)}%</span></div>`; }).join("")}</div></div>
   </div>`;
   if(crossed) toast(`<b>${esc(crossed[1])}.</b> ${esc(crossed[2])}`, {color});
+  tickTimers();
+  if(S.revealed && judgesFor(t) && S.scoresLoaded && !store.get("revealSeen:" + S.code, false) && !document.querySelector(".reveal-ov")) setTimeout(teamReveal, 200);
   // effects for freshly completed objectives
   if(fresh.size){
     fresh.forEach(id => { const el = $app.querySelector(`.task[data-id="${CSS.escape(id)}"] .box`); if(el){ const r = el.getBoundingClientRect(); burst(r.left+r.width/2, r.top+r.height/2, 34, [color]); } });
@@ -1221,18 +1331,24 @@ V.board = () => {
   $app.innerHTML = `<div class="lb">
     <div class="lb-top"><div class="lb-id"><span class="mark">${esc(initials(org || S.event.name))}</span><div class="stack" style="gap:6px;min-width:0">
       <span class="live" id="lbstatus">${S.ended?"FINAL RESULTS":"LIVE"}${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1></div></div>
+      <div class="lb-timer">${timerHTML("big")}</div>
       <div class="joinbox">${qrSVG(joinURL(S.code)) ? `<div class="qr" aria-label="QR code to join this event">${qrSVG(joinURL(S.code))}</div>` : ""}<div><p class="eyebrow" style="color:var(--muted);margin-bottom:6px">Scan or enter code</p><div class="mono">${esc(S.code)}</div><div class="joinurl">${esc(siteURL().replace(/^https?:\/\//,""))}</div></div></div></div>
     <div class="stats" id="stats"></div>
     <div id="stage" style="flex:1;display:flex;flex-direction:column"></div></div>
   <div class="lb-tools"><button class="btn sm" id="fs">Fullscreen</button><button class="btn sm ghost" id="ex">Exit</button></div>`;
   on("#fs", () => { try{ (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen())?.catch?.(()=>{}); }catch{} });
   on("#ex", () => { saveSession({role:null}); go("roles"); });
-  boardRender(true);
+  boardRender(true); tickTimers();
 };
-function boardUpdate(kind){
+function boardUpdate(kind, prev, prevCounts){
   if(!boardState) return;
   const ts = teams();
-  if(kind === "scores"){
+  if(kind === "scores" && !S.revealed){
+    if(S.scoresLoaded && prevCounts) ts.forEach((t,i) => {
+      const before = prevCounts[t.id] || 0, now = S.scoreCounts[t.id] || 0;
+      if(now > before){ toast(`A judge scored <b>${esc(t.name)}</b> · ${now} scorecard${now===1?"":"s"} in`, {color: teamColor(t, i)}); boardState.pulse = t.id; }
+    });
+  } else if(kind === "scores"){
     for(const [k,s] of Object.entries(S.scores)){
       if(!s.submitted) continue;
       const sig = k+":"+s.total;
@@ -1269,7 +1385,7 @@ function boardRender(first, eventEdit){
   const st = document.getElementById("stats");
   if(st) st.innerHTML = `<div><b>${ts.length}</b><small>teams</small></div><div><b>${objDone}<span class="muted" style="font-size:.6em">/${objTotal}</span></b><small>objectives done</small></div><div><b>${ts.filter(t => teamProgress(t).finished).length}</b><small>builds submitted</small></div><div><b>${n}</b><small>scorecards in</small></div>`;
   const lbs = document.getElementById("lbstatus"); if(lbs) lbs.textContent = (S.ended ? "FINAL RESULTS" : "LIVE") + (orgName() ? " · " + orgName().toUpperCase() : "");
-  const mode = (n || S.ended) ? "board" : "idle";
+  const mode = (n || S.ended || S.revealed) ? "board" : "idle";
   if(mode !== boardState.mode){
     const wasIdle = boardState.mode === "idle";
     boardState.mode = mode; boardState.rows.clear(); boardState.shown.clear();
@@ -1288,8 +1404,9 @@ function boardRender(first, eventEdit){
     return;
   }
   const brd = document.getElementById("brd"); brd.style.setProperty("--n", Math.max(1, ts.length));
-  const ranked = ts.map((t,i) => ({t, i, sc:teamScore(t), p:teamProgress(t)})).sort((a,b) => b.sc.sum - a.sc.sum || b.p.pct - a.p.pct || a.i - b.i);
+  const ranked = ts.map((t,i) => ({t, i, sc:teamScore(t), p:teamProgress(t)})).sort(S.revealed ? (a,b) => b.sc.sum - a.sc.sum || b.p.pct - a.p.pct || a.i - b.i : (a,b) => b.p.pct - a.p.pct || a.i - b.i);
   const top = Math.max(1, ...ranked.map(r => r.sc.sum));
+  const veiled = !!boardState.revealing, hidden = !S.revealed;
   const firstPos = new Map(); boardState.rows.forEach((el,id) => firstPos.set(id, el.getBoundingClientRect().top));
   const seen = new Set();
   ranked.forEach((r, rank) => {
@@ -1308,11 +1425,16 @@ function boardRender(first, eventEdit){
     el.querySelector(".lsub").innerHTML = r.p.finished ? `<span class="pill done">✓ Build submitted</span>` : `<span class="pill" style="color:${esc(color)}">Building · ${Math.round(r.p.pct*100)}%</span>`;
     el.querySelector(".segwrap").innerHTML = segsHTML(r.t, color, pop && pop.ids);
     el.querySelector(".lprog small").textContent = `${r.p.n}/${r.p.total} objectives`;
-    el.querySelector(".lscore small").textContent = `${r.sc.judges} judge${r.sc.judges===1?"":"s"}`;
-    const prevShown = boardState.shown.get(id) || 0;
-    if(prevShown !== r.sc.sum){ countUp(el.querySelector(".num"), prevShown, r.sc.sum, 1200); boardState.shown.set(id, r.sc.sum); }
-    requestAnimationFrame(() => { el.querySelector(".sbar i").style.width = (r.sc.sum/top*100)+"%"; });
-    el.classList.toggle("lead", rank === 0 && r.sc.sum > 0);
+    const jn = judgesFor(r.t), num = el.querySelector(".num");
+    el.querySelector(".lscore small").textContent = hidden ? `${jn} judge${jn===1?"":"s"} in · hidden` : `${jn} judge${jn===1?"":"s"}`;
+    el.classList.toggle("veil", veiled);
+    num.classList.toggle("hid", hidden);
+    if(hidden){ num.textContent = "???"; boardState.shown.set(id, 0); }
+    else if(veiled){ num.textContent = String(r.sc.sum).replace(/\d/g, "0"); }
+    else { const prevShown = boardState.shown.get(id) || 0; if(prevShown !== r.sc.sum || num.textContent === "???"){ countUp(num, prevShown, r.sc.sum, 1200); boardState.shown.set(id, r.sc.sum); } }
+    requestAnimationFrame(() => { el.querySelector(".sbar i").style.width = (hidden || veiled ? 0 : r.sc.sum/top*100)+"%"; });
+    el.classList.toggle("lead", !hidden && !veiled && rank === 0 && r.sc.sum > 0);
+    if(hidden || veiled){ el.classList.remove("winner"); el.querySelector(".crown")?.remove(); }
     if(boardState.pulse === id){ el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
     if(pop && !REDUCED){
       el.querySelectorAll(".sweep,.obj-badge").forEach(x => x.remove());
@@ -1332,7 +1454,7 @@ function boardRender(first, eventEdit){
     const seg = el.querySelector(".segs i.pop"); const r = (seg || el).getBoundingClientRect();
     burst(r.left+r.width/2, r.top+r.height/2, 60, [teamColor(t, ts.indexOf(t))]);
   }), 120);
-  const leader = ranked[0] && ranked[0].sc.sum > 0 ? ranked[0].t.id : null;
+  const leader = !hidden && !veiled && ranked[0] && ranked[0].sc.sum > 0 ? ranked[0].t.id : null;
   if(leader && boardState.leader && leader !== boardState.leader){
     const lt = ranked[0].t, lc = teamColor(lt, ranked[0].i);
     toast(`<b>${esc(lt.name)}</b> takes the lead!`, {color: lc, ms:5500});
@@ -1342,6 +1464,177 @@ function boardRender(first, eventEdit){
     if(el) setTimeout(() => { const r = el.getBoundingClientRect(); burst(r.left + r.width*.88, r.top + r.height/2, 70); }, 500);
   }
   boardState.leader = leader; boardState.pulse = null;
+}
+
+/* ---------- countdown timer ---------- */
+async function syncClock(){
+  try{ const t0 = Date.now(); const r = await S.sb.rpc("server_now"); const t1 = Date.now(); if(!r.error && r.data) S.clockOffset = new Date(r.data).getTime() - (t0 + t1)/2; }catch{}
+}
+const nowMs = () => Date.now() + S.clockOffset;
+function timerState(){
+  const t = S.timer;
+  if(!t || !t.status || t.status === "idle") return {status:"idle", left:0, total:0};
+  const total = t.durationMs || 0;
+  if(t.status === "paused") return {status:"paused", left:Math.max(0, t.remainingMs||0), total};
+  const left = Math.max(0, new Date(t.endsAt).getTime() - nowMs());
+  return {status: left > 0 ? "running" : "done", left, total};
+}
+const pad2 = n => String(n).padStart(2, "0");
+function timerDigits(ms){
+  const sec = Math.ceil(ms/1000), h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s2 = sec%60;
+  return h > 0 ? `${pad2(h)}:${pad2(m)}:${pad2(s2)}` : `${pad2(m)}:${pad2(s2)}`;
+}
+function timerHTML(size){
+  const label = (S.timer && S.timer.label) || "Time left";
+  return `<div class="tmr ${size}" data-tmr><div class="lab"><span>${esc(label)}</span><span data-tmr-status></span></div><div class="digits" data-tmr-digits></div><div class="tbar"><i data-tmr-bar></i></div></div>`;
+}
+let lastDoneKey = null;
+function tickTimers(force){
+  const els = document.querySelectorAll("[data-tmr]"); const st = timerState();
+  if(st.status === "done" && S.timer && S.timer.endsAt !== lastDoneKey){
+    const fresh = lastDoneKey !== null || force === "fresh"; lastDoneKey = S.timer.endsAt;
+    if(fresh && els.length) toast(`<b>Time's up!</b> ${esc((S.timer && S.timer.label) || "The countdown")} has ended.`, {ms:7000});
+  }
+  if(st.status !== "done" && S.timer && S.timer.endsAt && lastDoneKey === null) lastDoneKey = "";
+  els.forEach(el => {
+    el.classList.toggle("idle", st.status === "idle");
+    el.closest(".tmr-panel")?.classList.toggle("idle", st.status === "idle");
+    el.classList.toggle("paused", st.status === "paused");
+    el.classList.toggle("done", st.status === "done");
+    el.classList.toggle("crit", st.status === "running" && st.left <= 60000);
+    el.classList.toggle("warn", st.status === "running" && st.left > 60000 && st.left <= 300000);
+    const status = el.querySelector("[data-tmr-status]"); if(status) status.textContent = st.status === "paused" ? "Paused" : st.status === "done" ? "Time's up" : "";
+    const bar = el.querySelector("[data-tmr-bar]"); if(bar) bar.style.width = (st.total ? Math.min(100, st.left/st.total*100) : 0) + "%";
+    const box = el.querySelector("[data-tmr-digits]"); if(!box) return;
+    const txt = timerDigits(st.left);
+    if(box.dataset.v === txt && box.children.length) return;
+    const old = box.dataset.v || ""; box.dataset.v = txt;
+    if(old.length !== txt.length || !box.children.length){
+      box.innerHTML = [...txt].map(c => c === ":" ? `<span class="sep">:</span>` : `<span class="d"><span>${c}</span></span>`).join("");
+    } else {
+      [...txt].forEach((c,i) => { if(c !== old[i] && c !== ":"){ const d = box.children[i]; d.classList.remove("tick"); d.firstChild.textContent = c; void d.offsetWidth; d.classList.add("tick"); } });
+    }
+  });
+}
+function timerChanged(){
+  lastDoneKey = null;
+  if(S.view === "hostLive"){ render(); return; }
+  document.querySelectorAll("[data-tmr] .lab span:first-child").forEach(el => el.textContent = (S.timer && S.timer.label) || "Time left");
+  document.querySelectorAll("[data-tmr-digits]").forEach(el => { el.dataset.v = ""; el.innerHTML = ""; });
+  tickTimers();
+}
+async function setTimer(next){
+  const pw = hostPw(S.code); if(!pw){ toast("Sign in to Host tools again to control the timer.", {color:"#FF6B7A"}); return; }
+  try{
+    const ok = must(await S.sb.rpc("set_timer", {p_code: S.code, p_password: pw, p_timer: next}));
+    if(!ok){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return; }
+    S.timer = next; timerChanged();
+  }catch(e){ console.warn(e); toast("Couldn't update the timer. If you just updated the site, run migration 07 in Supabase.", {color:"#FF6B7A", ms:6000}); }
+}
+function timerModal(){
+  const st = timerState(), label = (S.timer && S.timer.label) || "Build time";
+  const start = mins => setTimer({status:"running", durationMs: mins*60000, endsAt: new Date(nowMs() + mins*60000).toISOString(), label: (document.querySelector("#tlab")?.value.trim() || label)});
+  if(st.status === "idle" || st.status === "done"){
+    modal({title:"Start the countdown", body:`<p>Every team screen and the leaderboard show it live.</p>
+      <div><label class="lbl" for="tlab">Label</label><input type="text" id="tlab" value="${esc(label)}" maxlength="40"></div>
+      <div class="row">${[15,30,60,90,120].map(m => `<button class="btn sm" data-min="${m}">${m < 60 ? m+" min" : (m/60)+" hr"}</button>`).join("")}</div>
+      <div class="row" style="flex-wrap:nowrap"><input type="text" id="tmin" inputmode="numeric" placeholder="Custom minutes" style="flex:1"><button class="btn sm brand" id="tgo">Start</button></div>`,
+      actions:[{label:"Close"}]});
+    const box = document.querySelector(".modal .box");
+    box.querySelectorAll("[data-min]").forEach(b => b.addEventListener("click", () => { start(+b.dataset.min); document.querySelector(".modal")?.remove(); }));
+    box.querySelector("#tgo").addEventListener("click", () => { const m = parseFloat(box.querySelector("#tmin").value); if(!(m > 0 && m <= 1440)){ box.querySelector("#tmin").focus(); return; } start(m); document.querySelector(".modal")?.remove(); });
+    return;
+  }
+  const t = S.timer, add = ms => {
+    if(st.status === "paused") return setTimer({...t, remainingMs: Math.max(0, t.remainingMs + ms), durationMs: Math.max(t.durationMs, t.remainingMs + ms)});
+    const newEnd = new Date(t.endsAt).getTime() + ms; return setTimer({...t, endsAt: new Date(newEnd).toISOString(), durationMs: Math.max(t.durationMs, newEnd - nowMs())});
+  };
+  modal({title: st.status === "paused" ? "Timer paused" : "Timer running", body:`<p>${esc(label)} · ${timerDigits(st.left)} left</p>`,
+    actions:[
+      {label:"Reset", run: () => setTimer({status:"idle", label})},
+      {label:"−5 min", run: () => add(-300000)},
+      {label:"+5 min", run: () => add(300000)},
+      st.status === "paused"
+        ? {label:"Resume", primary:true, run: () => setTimer({...t, status:"running", endsAt: new Date(nowMs() + t.remainingMs).toISOString()})}
+        : {label:"Pause", primary:true, run: () => setTimer({...t, status:"paused", remainingMs: Math.max(0, new Date(t.endsAt).getTime() - nowMs())})}
+    ]});
+}
+
+/* ---------- score reveal ---------- */
+function teamResultsHTML(t, color){
+  const rank = finalRanking().findIndex(r => r.t.id === t.id) + 1, sc = teamScore(t), max = questions().length*10;
+  return `<div class="results" style="--tc:${esc(color)}"><div class="spread"><div><p class="eyebrow">Your results</p><h3 style="font-size:calc(22px * var(--dscale))">#${rank} of ${teams().length} · ${sc.sum} points</h3></div>
+    <span class="chip">${sc.judges ? (sc.sum/sc.judges).toFixed(1) : "—"} / ${max} per judge</span></div>
+    <p class="muted" style="font-size:13px">Average score per judging question. See where you gained and lost points.</p>${qbarsHTML(questionAverages(t), true)}</div>`;
+}
+function startReveal(){
+  if(S.view === "board" && boardState){ boardReveal(); return; }
+  if(S.view === "teamBoard"){ teamReveal(); V.teamBoard(); return; }
+  render();
+}
+function revealCountdown(done){
+  const ov = document.createElement("div"); ov.className = "reveal-ov";
+  ov.innerHTML = `<div class="inner"><p class="kick">The results are in</p><div class="count" id="rc">3</div></div>`;
+  document.body.appendChild(ov);
+  if(REDUCED){ ov.remove(); done(); return; }
+  let n = 3; const rc = ov.querySelector("#rc");
+  const step = () => { n--; if(n > 0){ rc.textContent = n; rc.style.animation = "none"; void rc.offsetWidth; rc.style.animation = ""; setTimeout(step, 850); } else { ov.style.transition = "opacity .5s"; ov.style.opacity = 0; setTimeout(() => { ov.remove(); done(); }, 450); } };
+  setTimeout(step, 1100);
+}
+function boardReveal(){
+  if(!boardState) return;
+  boardState.known = new Set(Object.entries(S.scores).filter(([,c]) => c.submitted).map(([k,c]) => k+":"+c.total)); boardState.leader = null;
+  boardState.revealing = true; boardState.mode = null;
+  boardRender(false);
+  revealCountdown(() => {
+    if(!boardState) return;
+    const order = [...boardState.rows.keys()];          // already in final rank order
+    const ts = teams();
+    order.slice().reverse().forEach((id, k) => setTimeout(() => {
+      const el = boardState?.rows.get(id); if(!el) return;
+      const t = ts.find(x => x.id === id), sum = teamScore(t).sum, isWin = k === order.length - 1 && sum > 0;
+      el.classList.remove("veil"); el.classList.remove("flip"); void el.offsetWidth; el.classList.add("flip");
+      countUp(el.querySelector(".num"), 0, sum, isWin ? 1800 : 1100); boardState.shown.set(id, sum);
+      if(isWin){ setTimeout(() => { el.classList.add("winner"); const c = document.createElement("span"); c.className = "crown"; c.textContent = "WINNER"; el.appendChild(c); toast(`<b>${esc(t.name)}</b> wins!`, {ms:8000, color: teamColor(t, ts.indexOf(t))}); }, 1500); }
+      if(k === order.length - 1) setTimeout(() => { if(boardState){ boardState.revealing = false; } }, 1800);
+    }, 300 + k * 1100));
+  });
+}
+function teamReveal(){
+  if(document.querySelector(".reveal-ov")) return;
+  const ts = teams(), idx = ts.findIndex(t => t.id === S.session.teamId); if(idx < 0) return;
+  const t = ts[idx], color = teamColor(t, idx), rank = finalRanking().findIndex(r => r.t.id === t.id) + 1, total = teamScore(t).sum;
+  store.set("revealSeen:" + S.code, true);
+  const ov = document.createElement("div"); ov.className = "reveal-ov"; ov.style.setProperty("--tc", color);
+  ov.innerHTML = `<div class="inner"><p class="kick">The results are in</p><div class="count" id="rc">3</div></div>`;
+  document.body.appendChild(ov);
+  const show = () => {
+    const avgs = questionAverages(t), max = questions().length*10;
+    ov.querySelector(".inner").innerHTML = `<p class="kick" style="color:${esc(color)}">${esc(t.name)}</p>
+      <div class="rankbig">#${rank}</div><p class="muted" style="margin-top:-6px">of ${ts.length} teams</p>
+      <div class="stack" style="align-items:center;gap:2px"><div class="mono" style="font-size:clamp(32px,6vh,52px);color:var(--brand);font-weight:700" id="rt">0</div><small class="muted">total points from ${teamScore(t).judges} judge${teamScore(t).judges===1?"":"s"} · ${max} max each</small></div>
+      ${qbarsHTML(avgs)}
+      <button class="btn brand" id="rx">See our results</button>`;
+    countUp(ov.querySelector("#rt"), 0, total, 1600);
+    requestAnimationFrame(() => setTimeout(() => ov.querySelectorAll(".qbar .t i").forEach(i => i.style.width = i.dataset.w), 600));
+    ov.querySelector("#rx").addEventListener("click", () => ov.remove());
+    ov.querySelector("#rx").focus();
+  };
+  if(REDUCED){ show(); return; }
+  let n = 3; const rc = ov.querySelector("#rc");
+  const step = () => { n--; if(n > 0){ rc.textContent = n; rc.style.animation = "none"; void rc.offsetWidth; rc.style.animation = ""; setTimeout(step, 850); } else show(); };
+  setTimeout(step, 1100);
+}
+function qbarsHTML(avgs, instant){
+  const scored = avgs.filter(a => a.avg !== null);
+  const best = scored.length > 1 ? scored.reduce((a,b) => b.avg > a.avg ? b : a) : null;
+  const worst = scored.length > 1 ? scored.reduce((a,b) => b.avg < a.avg ? b : a) : null;
+  return `<div class="qbars">${avgs.map(a => {
+    const cls = best && a === best && best.avg !== worst.avg ? "best" : worst && a === worst && best.avg !== worst.avg ? "worst" : "";
+    const short = a.q.text.split(":")[0];
+    const w = a.avg === null ? "0%" : (a.avg/10*100) + "%";
+    return `<div class="qbar ${cls}" title="${esc(a.q.text)}"><span class="q">${esc(short)}${cls==="best"?`<span class="tag">STRONGEST</span>`:cls==="worst"?`<span class="tag">MOST ROOM TO GROW</span>`:""}</span><span class="v">${a.avg === null ? "—" : a.avg.toFixed(1)}<small class="muted">/10</small></span><div class="t"><i data-w="${w}" ${instant?`style="width:${w}"`:""}></i></div></div>`;
+  }).join("")}</div>`;
 }
 
 /* ---------- effects ---------- */
