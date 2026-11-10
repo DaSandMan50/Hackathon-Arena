@@ -576,7 +576,7 @@ function eventChanged(){
 }
 function dataChanged(kind, prev){
   if(S.view === "board"){ boardUpdate(kind, prev); return; }
-  if(S.view === "ended"){ V.ended(); return; }
+  if(S.ended && !["board","hostLive","create","home","join","hostLogin"].includes(S.view)){ render(); return; }
   if(S.view === "teamBoard" && kind === "progress"){ V.teamBoard(); return; }
   if(["judgeTeams","hostLive","teamPick"].includes(S.view)) render();
 }
@@ -602,6 +602,7 @@ function needEvent(){
 function finalRanking(){ return teams().map((t,i) => ({t, i, sc:teamScore(t), p:teamProgress(t)})).sort((a,b) => b.sc.sum - a.sc.sum || b.p.pct - a.p.pct || a.i - b.i); }
 
 /* ---------- views ---------- */
+const V = {};
 V.ended = () => {
   const ranked = finalRanking();
   $app.innerHTML = `${barHTML()}<div class="wrap">
@@ -611,7 +612,6 @@ V.ended = () => {
     <button class="btn block" id="lv">Leave event</button></div>`;
   on("#lv", () => { leave(); go("home"); });
 };
-const V = {};
 V.nodb = () => {
   $app.innerHTML = `<div class="wrap center-v"><div class="hero"><p class="eyebrow">Live event platform</p><h1>Hackathon <span>Arena</span></h1>
   <div class="notice bad">Can't connect to the database yet. Add your Supabase anon key to index.html (SUPABASE_ANON_KEY), then reload.</div></div></div>`;
