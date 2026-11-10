@@ -44,7 +44,9 @@ body{background:var(--ink);color:var(--text);font-family:var(--f-body);font-size
 #bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 #fx{position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:none}
 #app{position:relative;z-index:1;height:100%;box-sizing:border-box;overflow:hidden;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 max(14px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column}
-.wrap{width:100%;max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(10px,1.9vh,18px);flex:1;min-height:0}
+.wrap{width:100%;max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:clamp(10px,1.9vh,18px);flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none;padding-inline:4px}
+.wrap::-webkit-scrollbar{display:none}
+.wrap.center-v{justify-content:safe center}
 .fill{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent;display:flex;flex-direction:column;gap:10px;margin-inline:-4px;padding:2px 4px}
 .fill.grow0{flex:0 1 auto}
 .foot{display:flex;flex-direction:column;gap:8px;flex:none}
@@ -98,7 +100,9 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 
 /* Landing */
 .hero{display:flex;flex-direction:column;gap:14px;padding-top:5vh}
-.land{width:100%;max-width:980px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,3vh,28px);flex:1;min-height:0;padding-block:clamp(12px,3vh,32px) 0}
+.land{width:100%;max-width:980px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,3vh,28px);flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding-block:clamp(12px,3vh,32px) 0}
+.land::-webkit-scrollbar{display:none}
+.land{justify-content:safe center}
 .land-head{display:flex;flex-direction:column;gap:clamp(8px,1.6vh,16px)}
 .mega{font-family:var(--f-display);font-weight:800;font-size:calc(clamp(40px,min(12vw,12vh),132px) * var(--dscale));line-height:.88;letter-spacing:-.045em;margin:0;display:flex;flex-direction:column}
 .mega .ln{display:block;overflow:hidden;padding-bottom:.06em}
@@ -246,16 +250,16 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .milestone b{font-family:var(--f-display);font-size:17px}
 
 /* Modal */
-.modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:24px;background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
-.modal .box{width:min(460px,100%);display:flex;flex-direction:column;gap:14px;padding:24px;border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
+.modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
+.modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
 .modal .box.warn{border-color:color-mix(in srgb,var(--bad) 55%,transparent)}
 .modal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:var(--muted)}
 .expiry{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--line-2);font-size:13px;color:var(--muted);flex:none}
 .expiry.soon{border-color:color-mix(in srgb,var(--bad) 55%,transparent);background:color-mix(in srgb,var(--bad) 9%,transparent);color:var(--text)}
 /* Celebration overlay */
 .celebrate{position:fixed;inset:0;z-index:55;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--tc) 30%,color-mix(in srgb,var(--ink) 85%,transparent)),color-mix(in srgb,var(--ink) 94%,transparent));backdrop-filter:blur(6px);animation:fadeIn .4s ease;padding:24px}
-.celebrate .inner{text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center;max-width:560px}
-.celebrate h1{font-size:calc(clamp(44px,11vw,96px) * var(--dscale));animation:zoomIn .8s var(--spring)}
+.celebrate .inner{text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center;max-width:560px;max-height:100%;overflow-y:auto}
+.celebrate h1{font-size:calc(clamp(36px,min(11vw,10vh),96px) * var(--dscale));animation:zoomIn .8s var(--spring)}
 .celebrate h1 span{color:var(--tc)}
 @keyframes fadeIn{from{opacity:0}}
 @keyframes zoomIn{from{transform:scale(.6);opacity:0}}
@@ -537,9 +541,11 @@ function forgetHosted(code){ store.set("hosted", store.get("hosted", []).filter(
 function modal({title, body, actions, warn}){
   document.querySelector(".modal")?.remove();
   const el = document.createElement("div"); el.className = "modal"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
-  el.innerHTML = `<div class="box ${warn?"warn":""}"><h2 style="font-size:calc(24px * var(--dscale))">${title}</h2><div class="muted" style="display:flex;flex-direction:column;gap:10px">${body}</div><div class="row" style="justify-content:flex-end">${actions.map((a,i) => `<button class="btn sm ${a.primary?"brand":"ghost"}" data-i="${i}">${esc(a.label)}</button>`).join("")}</div></div>`;
+  el.innerHTML = `<div class="box ${warn?"warn":""}"><h2 style="font-size:calc(24px * var(--dscale))">${title}</h2><div class="muted" style="display:flex;flex-direction:column;gap:10px">${body}</div><div class="row" style="justify-content:flex-end">${actions.map((a,i) => `<button class="btn sm ${a.danger?"danger":a.primary?"brand":"ghost"}" data-i="${i}">${esc(a.label)}</button>`).join("")}</div></div>`;
   document.body.appendChild(el);
   el.querySelectorAll("button[data-i]").forEach(b => b.addEventListener("click", async () => { const a = actions[+b.dataset.i]; el.remove(); if(a.run) await a.run(); }));
+  el.addEventListener("click", e => { if(e.target === el) el.remove(); });
+  const esc_ = e => { if(e.key === "Escape"){ el.remove(); removeEventListener("keydown", esc_); } }; addEventListener("keydown", esc_);
   el.querySelector("button")?.focus();
 }
 async function keepEvent(code){
@@ -940,20 +946,14 @@ V.hostLive = () => {
     ${S.ended
       ? `<div class="row"><button class="btn brand" id="reopen" style="flex:1">Reopen event</button><button class="btn ghost" id="del">Delete event now</button></div>`
       : `<div class="row"><button class="btn" id="edit" style="flex:2">Edit event</button><button class="btn ghost" id="reset" style="flex:1">Clear scores</button><button class="btn ghost" id="end" style="flex:1">End event</button></div>`}
-    <div class="panel stack" id="endBox" hidden><p>End <b>${esc(S.event.name)}</b>? Scores freeze, the leaderboard switches to final results, and judges and teams can't make changes. You can reopen it any time in the next 7 days, then it's deleted automatically.</p>
-      <div class="row"><button class="btn sm" id="eN">Keep running</button><button class="btn sm danger" id="eY">End event</button></div></div>
-    <div class="panel stack" id="delBox" hidden><p>Permanently delete <b>${esc(S.code)}</b> with all its scores and progress? This can't be undone.</p>
-      <div class="row"><button class="btn sm" id="dN">Cancel</button><button class="btn sm danger" id="dY">Delete forever</button></div></div>
-    <div class="panel stack" id="resetBox" hidden><p>Delete every judge scorecard and team checkmark for <b>${esc(S.code)}</b>? Teams, questions and branding stay.</p>
-      <div class="row"><button class="btn sm" id="rN">Keep everything</button><button class="btn sm danger" id="rY">Delete scores & progress</button></div></div>
     <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 2 weeks are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
   </div>`;
   on("#copy", async () => { try{ await navigator.clipboard.writeText(S.code); toast("Code copied"); }catch{ const r = document.createRange(); r.selectNodeContents($app.querySelector("#code")); getSelection().removeAllRanges(); getSelection().addRange(r); } });
   on("#board", () => { saveSession({role:"board"}); go("board"); });
   on("#edit", () => go("create", {edit:true}));
-  on("#reset", () => { $app.querySelector("#resetBox").hidden = false; });
-  on("#rN", () => { $app.querySelector("#resetBox").hidden = true; });
-  on("#rY", async () => {
+  on("#reset", () => modal({warn:true, title:"Clear all scores?", body:`<p>Delete every judge scorecard and team checkmark for <b style="color:var(--text)">${esc(S.code)}</b>? Teams, questions and branding stay.</p>`,
+    actions:[{label:"Keep everything"}, {label:"Delete scores & progress", danger:true, run: clearScores}]}));
+  const clearScores = async () => {
     try{
       const pw = hostPw(S.code);
       const ok = pw ? must(await S.sb.rpc("reset_event", {p_code: S.code, p_password: pw})) : false;
@@ -961,7 +961,7 @@ V.hostLive = () => {
       S.scores = {}; S.progress = {}; render();
       toast("Scores and progress cleared");
     }catch{ toast("Couldn't clear everything. Try again.", {color:"#FF6B7A"}); }
-  });
+  };
   const hostCall = async (fn, okMsg) => {
     try{
       const pw = hostPw(S.code);
@@ -987,12 +987,11 @@ V.hostLive = () => {
   });
   on("#keep", () => keepEvent(S.code));
   if(S.expiresAt && S.expiresAt - Date.now() < 2*DAY) setTimeout(checkHosted, 300);
-  const toggle = (id, show) => { const el = $app.querySelector(id); if(el) el.hidden = !show; };
-  on("#end", () => toggle("#endBox", true)); on("#eN", () => toggle("#endBox", false));
-  on("#eY", async () => { if(await hostCall("end_event", "Event ended. Final results are on the leaderboard.")){ S.ended = true; render(); } });
+  on("#end", () => modal({warn:true, title:"End this event?", body:`<p>End <b style="color:var(--text)">${esc(S.event.name)}</b>? Scores freeze, the leaderboard switches to final results, and judges and teams can't make changes.</p><p>You can reopen it any time in the next 7 days. After that it's deleted automatically.</p>`,
+    actions:[{label:"Keep running"}, {label:"End event", danger:true, run: async () => { if(await hostCall("end_event", "Event ended. Final results are on the leaderboard.")){ S.ended = true; render(); } }}]}));
   on("#reopen", async () => { if(await hostCall("reopen_event", "Event reopened. Judging and checklists are live again.")){ S.ended = false; render(); } });
-  on("#del", () => toggle("#delBox", true)); on("#dN", () => toggle("#delBox", false));
-  on("#dY", async () => { const code = S.code; if(await hostCall("delete_event", "Event deleted")){ store.del("host:"+code); forgetHosted(code); leave(); go("home"); } });
+  on("#del", () => modal({warn:true, title:"Delete this event?", body:`<p>Permanently delete <b style="color:var(--text)">${esc(S.code)}</b> with all its scores and progress? This can't be undone.</p>`,
+    actions:[{label:"Cancel"}, {label:"Delete forever", danger:true, run: async () => { const code = S.code; if(await hostCall("delete_event", "Event deleted")){ store.del("host:"+code); forgetHosted(code); leave(); go("home"); } }}]}));
   on("#exit", () => { store.del("host:"+S.code); leave(); go("home"); });
 };
 
