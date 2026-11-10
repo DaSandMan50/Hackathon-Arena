@@ -366,6 +366,15 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .nav-top{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .host-link{align-self:center;color:var(--muted);font-weight:700;font-size:13px;padding:8px 4px}
 .host-link:hover{color:var(--text)}
+.rlist{display:flex;flex-direction:column;gap:8px}
+.ritem{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px 12px;align-items:center;padding:14px 16px;border-radius:calc(var(--r) * .8);border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 92%,transparent)}
+.ritem .rk{font-family:var(--f-mono);font-weight:700;font-size:15px;color:var(--muted);text-align:center}
+.ritem .nm{font-family:var(--f-display);font-weight:700;font-size:calc(17px * var(--dscale));color:var(--tc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px;min-width:0}
+.ritem .nm em{font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 50%,transparent);border-radius:99px;padding:2px 7px;flex:none}
+.ritem .pc{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+.ritem .segs{grid-column:2 / -1;height:10px}
+.ritem.me{border-color:color-mix(in srgb,var(--tc) 55%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 10%,var(--panel)),var(--panel) 70%)}
+.ritem.me .rk{color:var(--tc)}
 /* Modal */
 .modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
 .modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
@@ -1132,8 +1141,7 @@ V.hostLive = () => {
   const stat = `<div class="hcard" style="flex:1 1 auto;min-height:0">
       <div class="stats"><div><b>${ts.length}</b><small>teams</small></div><div><b>${qs.length}</b><small>questions</small></div><div><b>${judges}</b><small>judges</small></div><div><b>${cards}</b><small>scorecards</small></div></div>
       ${S.revealed ? "" : `<p class="hidnote">Totals below are a preview only you can see.</p>`}
-      <div class="race fill">${ts.map((t,i) => { const sc = teamScore(t), c = teamColor(t,i); return `
-        <div class="race-row"><span class="nm" style="color:${esc(c)}">${esc(t.name)}</span>${segsHTML(t,c)}<span class="mono" style="text-align:right;color:var(--brand)">${sc.sum}</span></div>`; }).join("")}</div>
+      <div class="fill">${raceListHTML(null, true)}</div>
     </div>`;
   $app.innerHTML = `${barHTML()}<div class="wrap">
     <div class="nav-top"><button class="back" id="exit">← Exit host tools</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
@@ -1234,25 +1242,33 @@ V.teamBoard = () => {
   const t = ts[idx], color = teamColor(t, idx), p = teamProgress(t), done = doneSet(t), objs = t.objectives || [];
   // detect newly completed objectives (from me or a teammate) to animate them
   const prevDone = S.viewCtx.prevDone, prevPct = S.viewCtx.prevPct ?? p.pct, wasFinished = S.viewCtx.prevFinished ?? p.finished;
-  const fresh = prevDone ? new Set([...done].filter(id => !prevDone.has(id))) : new Set();
+  const fresh = prevDone && S.viewCtx.prevLoaded ? new Set([...done].filter(id => !prevDone.has(id))) : new Set();   // no fanfare while the first data load arrives
+  S.viewCtx.prevLoaded = S.progressLoaded;
   S.viewCtx.prevDone = done; S.viewCtx.prevPct = p.pct; S.viewCtx.prevFinished = p.finished;
   const crossed = fresh.size ? MILESTONES.filter(([m]) => prevPct < m && p.pct >= m && p.pct < 1).pop() : null;
   if(crossed) S.viewCtx.milestone = crossed;
   const sorted = ts.map((x,i) => ({x,i,p:teamProgress(x)})).sort((a,b) => b.p.pct - a.p.pct || a.i - b.i);
   const myRank = sorted.findIndex(r => r.x.id === t.id) + 1;
+  const hasResults = S.revealed && judgesFor(t) > 0;
+  let ttab = S.viewCtx.teamTab || (hasResults ? "results" : "list"); if(ttab === "results" && !hasResults) ttab = "list";
   $app.innerHTML = `${barHTML()}<div class="wrap" style="--tc:${esc(color)}">
     <div class="spread" style="flex:none"><button class="back" id="bk">← Switch team</button><span class="saved" style="opacity:0"></span></div>
     <div class="ring-wrap" style="flex:none">${ringSVG(p.pct, color, fresh.size>0)}<div class="stack" style="gap:4px;min-width:0"><p class="eyebrow" style="color:${esc(color)}">${p.finished?"Build submitted":"Your team"}</p><h2>${esc(t.name)}</h2><p class="muted">${p.n} of ${p.total} objectives · #${myRank} of ${ts.length} in the race</p>${S.revealed ? "" : `<p class="hidnote">${judgesFor(t)} judge scorecard${judgesFor(t)===1?"":"s"} in · scores revealed by the host</p>`}</div></div>
     <div class="tmr-panel">${timerHTML("mid")}</div>
-    <div class="fill">${S.revealed && judgesFor(t) ? teamResultsHTML(t, color) : ""}${objs.length ? objs.map((o,k) => `
+    <div class="tabs" role="tablist" style="grid-template-columns:repeat(${hasResults ? 3 : 2},1fr)">
+      <button role="tab" data-ttab="list" aria-selected="${ttab==="list"}">Checklist · ${p.n}/${p.total}</button>
+      <button role="tab" data-ttab="race" aria-selected="${ttab==="race"}">The race · #${myRank}</button>
+      ${hasResults ? `<button role="tab" data-ttab="results" aria-selected="${ttab==="results"}">Our results</button>` : ""}</div>
+    ${ttab === "race" ? `<div class="fill">${raceListHTML(t.id)}</div>`
+    : ttab === "results" ? `<div class="fill">${teamResultsHTML(t, color)}</div>`
+    : `<div class="fill">${objs.length ? objs.map((o,k) => `
       <button class="task ${done.has(o.id)?"on":""} ${fresh.has(o.id)?"just":""}" data-id="${esc(o.id)}" aria-pressed="${done.has(o.id)}"><span class="box"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span><span class="tt">${esc(o.text)}<span class="n" style="display:block">Objective ${k+1} of ${objs.length}</span></span>${fresh.has(o.id)?`<span class="plus">+1</span>`:""}</button>`).join("")
       : `<div class="panel muted">Your host hasn't added objectives for this team yet. They'll appear here automatically.</div>`}</div>
     ${objs.length && !p.finished ? `<button class="btn ${p.n===p.total?"brand ready":""} block" id="fin" ${p.n===p.total?"":"disabled"}>${p.n===p.total?"We're done. Submit our build":`${p.total-p.n} objective${p.total-p.n===1?"":"s"} to go`}</button>` : ""}
-    ${p.finished ? `<button class="btn ghost block" id="unfin">Build submitted · Reopen</button>` : ""}
-    <div class="panel" style="flex:0 1 auto;min-height:0;max-height:26vh;display:flex;flex-direction:column;gap:10px;padding-block:12px"><div class="spread"><h3>The race</h3><span class="live">LIVE</span></div>
-      <div class="race fill" style="gap:8px">${sorted.map(({x,i,p}) => { const c = teamColor(x,i); return `<div class="race-row ${x.id===t.id?"me":""}"><span class="nm" style="color:${x.id===t.id?esc(c):"var(--text)"}">${esc(x.name)}${p.finished?" ✓":""}</span>${segsHTML(x,c)}<span class="mono muted" style="text-align:right">${Math.round(p.pct*100)}%</span></div>`; }).join("")}</div></div>
+    ${p.finished ? `<button class="btn ghost block" id="unfin">Build submitted · Reopen</button>` : ""}`}
   </div>`;
   if(crossed) toast(`<b>${esc(crossed[1])}.</b> ${esc(crossed[2])}`, {color});
+  onAll("[data-ttab]", el => { S.viewCtx.teamTab = el.dataset.ttab; V.teamBoard(); });
   tickTimers();
   if(S.revealed && judgesFor(t) && S.scoresLoaded && !store.get("revealSeen:" + S.code, false) && !document.querySelector(".race-ov")) setTimeout(teamReveal, 200);
   // effects for freshly completed objectives
@@ -1669,6 +1685,15 @@ function timerModal(){
 }
 
 /* ---------- score reveal ---------- */
+function raceListHTML(meId, showScores){
+  const ts = teams();
+  const rows = ts.map((t,i) => ({t, i, p:teamProgress(t), sc:teamScore(t)})).sort((a,b) => b.p.pct - a.p.pct || a.i - b.i);
+  return `<div class="rlist">${rows.map((r,k) => { const c = teamColor(r.t, r.i); return `<div class="ritem ${r.t.id === meId ? "me" : ""}" style="--tc:${esc(c)}">
+      <span class="rk">${k+1}</span>
+      <span class="nm">${esc(r.t.name)}${r.t.id === meId ? `<em>YOU</em>` : ""}</span>
+      <span class="pc">${showScores ? `<b style="color:var(--brand)">${r.sc.sum}</b> pts · ` : ""}${r.p.finished ? `<b style="color:var(--good)">Submitted</b>` : `${r.p.n}/${r.p.total}`}</span>
+      ${segsHTML(r.t, c)}</div>`; }).join("")}</div>`;
+}
 function teamResultsHTML(t, color){
   const rank = finalRanking().findIndex(r => r.t.id === t.id) + 1, sc = teamScore(t), max = questions().length*10;
   return `<div class="results" style="--tc:${esc(color)}"><div class="spread"><div><p class="eyebrow">Your results</p><h3 style="font-size:calc(22px * var(--dscale))">#${rank} of ${teams().length} · ${sc.sum} points</h3></div>
@@ -1773,7 +1798,7 @@ function teamReveal(){
       <button class="btn brand block" id="rx">Done</button></div>`;
     countUp(ov.querySelector("#rt"), 0, sc.sum, 1400);
     setTimeout(() => ov.querySelectorAll(".qbar .t i").forEach(i => i.style.width = i.dataset.w), 350);
-    ov.querySelector("#rx").addEventListener("click", () => ov.remove());
+    ov.querySelector("#rx").addEventListener("click", () => { ov.remove(); if(S.view === "teamBoard"){ S.viewCtx.teamTab = "results"; V.teamBoard(); } });
   }});
 }
 function qbarsHTML(avgs, instant){
