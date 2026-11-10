@@ -513,6 +513,7 @@ function connectEvent(code){
 }
 function disconnect(){ S.unsubs.forEach(u => { try{u()}catch{} }); S.unsubs = []; S.code = null; }
 const hostPw = code => store.get("host:"+code, null);
+const judgeCode = code => store.get("judge:"+code, null);
 const siteURL = () => location.origin + location.pathname;
 const joinURL = code => siteURL() + "#join-" + code;
 function qrSVG(text){
@@ -553,7 +554,7 @@ function route(){
   if(S.dbMissing){ go("nodb"); return; }
   const s = S.session;
   if(s.code && s.role){
-    if(s.role === "judge") go(s.judgeTeam ? "judgeScore" : (s.judgeName ? "judgeTeams" : "judgeName"));
+    if(s.role === "judge") go(!judgeCode(s.code) || !s.judgeName ? "judgeName" : s.judgeTeam ? "judgeScore" : "judgeTeams");
     else if(s.role === "team") go(s.teamId ? "teamBoard" : "teamPick");
     else if(s.role === "board") go("board");
     else if(s.role === "host") go("hostLive");
@@ -716,7 +717,7 @@ V.roles = () => {
   on("#bk", () => { leave(); go("join"); });
   onAll(".role", el => {
     const r = el.dataset.r; saveSession({role:r});
-    if(r === "team") go("teamPick"); else if(r === "judge") go(S.session.judgeName ? "judgeTeams" : "judgeName"); else go("board");
+    if(r === "team") go("teamPick"); else if(r === "judge") go(S.session.judgeName && judgeCode(S.code) ? "judgeTeams" : "judgeName"); else go("board");
   });
 };
 
@@ -824,8 +825,9 @@ V.create = () => {
         toast("Event saved. Everyone's screens update now.");
         go("hostLive");
       } else {
-        const code = must(await S.sb.rpc("create_event", {p_data: clean, p_password: draft.hostPw}));
-        store.set("host:"+code, draft.hostPw);
+        const res = must(await S.sb.rpc("create_event2", {p_data: clean, p_password: draft.hostPw}));
+        const code = res.code;
+        store.set("host:"+code, draft.hostPw); S.judgeCodeFor = {code, value: res.judge_code};
         saveSession({code, role:"host"}); connectEvent(code);
         burst(innerWidth/2, innerHeight/3, 180);
         go("hostLive", {fresh:true});
@@ -865,9 +867,11 @@ V.hostLive = () => {
     <div class="stack" style="text-align:center;align-items:center;gap:8px;flex:none">
       <p class="eyebrow">${S.ended?"Event ended · final results are frozen":S.viewCtx.fresh?"Your event is live":"Host tools"}</p>
       <div class="row" style="justify-content:center;gap:18px;flex-wrap:nowrap">${qrSVG(joinURL(S.code)) ? `<div class="qr sm">${qrSVG(joinURL(S.code))}</div>` : ""}<div class="bigcode" id="code" style="font-size:clamp(34px,min(11vw,8vh),84px)">${esc(S.code)}</div></div>
-      <p class="muted" style="max-width:40ch">Share this page's link. Everyone taps <b style="color:var(--cyan)">Join</b> and enters this code.</p>
+      <p class="muted" style="max-width:44ch">Everyone joins with this code. Judges also need the private judge code below.</p>
       <div class="row" style="justify-content:center"><button class="btn sm" id="copy">Copy code</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
     </div>
+    <div class="panel spread" style="padding-block:12px"><div><p class="eyebrow" style="color:var(--muted)">Judge code · share only with judges</p><div class="mono" id="jcode" style="font-size:clamp(22px,4vh,30px);letter-spacing:.2em;color:var(--brand);font-weight:700">${S.judgeCodeFor && S.judgeCodeFor.code === S.code ? esc(S.judgeCodeFor.value) : "••••••"}</div></div>
+      <div class="row"><button class="btn sm" id="jcopy">Copy</button><button class="btn sm ghost" id="jnew">New code</button></div></div>
     <div class="panel" style="flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;gap:14px"><div class="spread"><h3>${S.ended?"Final status":"Live status"}</h3>${S.ended?`<span class="pill">ENDED</span>`:`<span class="live">LIVE</span>`}</div>
       <div class="stats"><div><b>${ts.length}</b><small>teams</small></div><div><b>${qs.length}</b><small>questions</small></div><div><b>${judges}</b><small>judges</small></div><div><b>${submittedCount()}</b><small>scorecards</small></div></div>
       <div class="race fill">${ts.map((t,i) => { const p = teamProgress(t), sc = teamScore(t), c = teamColor(t,i); return `
@@ -906,6 +910,21 @@ V.hostLive = () => {
       if(okMsg) toast(okMsg); return true;
     }catch(e){ console.warn(e); toast("Couldn't reach the database. Try again.", {color:"#FF6B7A"}); return false; }
   };
+  if(!(S.judgeCodeFor && S.judgeCodeFor.code === S.code) && hostPw(S.code)){
+    const code = S.code;
+    S.sb.rpc("get_judge_code", {p_code: code, p_password: hostPw(code)}).then(r => {
+      if(r.data && S.code === code){ S.judgeCodeFor = {code, value: r.data}; const el = $app.querySelector("#jcode"); if(el) el.textContent = r.data; }
+    });
+  }
+  on("#jcopy", async () => { const v = S.judgeCodeFor && S.judgeCodeFor.value; if(!v) return; try{ await navigator.clipboard.writeText(v); toast("Judge code copied"); }catch{ toast("Judge code: " + v); } });
+  on("#jnew", async () => {
+    try{
+      const v = must(await S.sb.rpc("reset_judge_code", {p_code: S.code, p_password: hostPw(S.code)}));
+      if(!v){ toast("Your host password didn't match. Sign in to host tools again.", {color:"#FF6B7A"}); return; }
+      S.judgeCodeFor = {code: S.code, value: v}; $app.querySelector("#jcode").textContent = v;
+      toast("New judge code made. The old one no longer works, so share the new one with your judges.");
+    }catch{ toast("Couldn't reach the database. Try again.", {color:"#FF6B7A"}); }
+  });
   const toggle = (id, show) => { const el = $app.querySelector(id); if(el) el.hidden = !show; };
   on("#end", () => toggle("#endBox", true)); on("#eN", () => toggle("#endBox", false));
   on("#eY", async () => { if(await hostCall("end_event", "Event ended. Final results are on the leaderboard.")){ S.ended = true; render(); } });
@@ -1004,18 +1023,25 @@ function celebrate(name, color){
 /* ----- Judge ----- */
 V.judgeName = () => {
   if(!needEvent()) return;
-  $app.innerHTML = `${barHTML()}<div class="wrap"><button class="back" id="bk">← Back</button>
-    <div class="stack"><p class="eyebrow">Judging</p><h2>What's your name?</h2><p class="muted">It's attached to your scorecards so the host knows who scored what.</p></div>
+  const name = (S.session.judgeName || "").split(" ");
+  $app.innerHTML = `${barHTML()}<div class="wrap center-v"><button class="back" id="bk">← Back</button>
+    <div class="stack"><p class="eyebrow">Judging</p><h2>Judge sign-in</h2><p class="muted">Enter the judge code from your host and your name. Your name is attached to your scorecards.</p></div>
     <form class="panel stack" id="f">
-      <div><label class="lbl" for="fn">First name</label><input type="text" id="fn" autocomplete="given-name"></div>
-      <div><label class="lbl" for="ln">Last name</label><input type="text" id="ln" autocomplete="family-name"></div>
+      <div><label class="lbl" for="jc">Judge code</label><input type="text" id="jc" class="code-input" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="••••••" value="${esc(judgeCode(S.code) || "")}"></div>
+      <div class="row" style="flex-wrap:nowrap"><div style="flex:1;min-width:0"><label class="lbl" for="fn">First name</label><input type="text" id="fn" autocomplete="given-name" value="${esc(name[0] || "")}"></div>
+      <div style="flex:1;min-width:0"><label class="lbl" for="ln">Last name</label><input type="text" id="ln" autocomplete="family-name" value="${esc(name.slice(1).join(" "))}"></div></div>
       <p class="err" id="er"></p><button class="btn brand block" type="submit">Start judging</button></form></div>`;
-  $app.querySelector("#fn").focus();
+  $app.querySelector(judgeCode(S.code) ? "#fn" : "#jc").focus();
   on("#bk", () => { saveSession({role:null}); go("roles"); });
-  on("#f", e => {
+  on("#f", async e => {
     e.preventDefault();
-    const fn = $app.querySelector("#fn").value.trim(), ln = $app.querySelector("#ln").value.trim();
-    if(!fn || !ln){ $app.querySelector("#er").textContent = "Enter both your first and last name."; return; }
+    const jc = cleanCode($app.querySelector("#jc").value), fn = $app.querySelector("#fn").value.trim(), ln = $app.querySelector("#ln").value.trim(), er = $app.querySelector("#er");
+    if(jc.length !== 6){ er.textContent = "Judge codes are 6 characters. Ask your host for it."; return; }
+    if(!fn || !ln){ er.textContent = "Enter both your first and last name."; return; }
+    er.textContent = "Checking…";
+    try{ if(!must(await S.sb.rpc("verify_judge", {p_code: S.code, p_judge_code: jc}))){ er.textContent = "That judge code isn't right. Check it with your host."; return; } }
+    catch{ er.textContent = "Couldn't check the code. Check your connection and try again."; return; }
+    store.set("judge:"+S.code, jc);
     saveSession({judgeName: `${fn} ${ln}`}); go("judgeTeams");
   }, "submit");
 };
@@ -1034,6 +1060,7 @@ V.judgeTeams = () => {
       <span class="chip ${c&&c.submitted?"done":answered?"wip":""}">${c&&c.submitted?`scored ${c.total}`:answered?`${answered}/${qn} in progress`:"not scored"}</span></button>`; }).join("")}</div></div>`;
   on("#bk", () => { saveSession({role:null}); go("roles"); });
   on("#nm", () => { saveSession({judgeName:null}); go("judgeName"); });
+  if(!judgeCode(S.code)){ go("judgeName"); return; }
   onAll(".pick", el => {
     const c = myCard(el.dataset.id), qs = questions(), firstOpen = qs.findIndex(q => !(c && c.scores && c.scores[q.id]));
     saveSession({judgeTeam: el.dataset.id, qIndex: c && c.submitted ? qs.length : Math.max(0, firstOpen)});
@@ -1055,7 +1082,11 @@ V.judgeScore = () => {
     store.set("card:"+S.code+":"+id, {scores: card.scores, submitted: !!card.submitted, total: card.total ?? null});
     const body = {judge: S.session.judgeName, teamId: t.id, scores: {...card.scores}, submitted: !!card.submitted, total: card.total ?? null, updatedAt: Date.now(), ...extra};
     const code = S.code;
-    queueWrite(`score:${id}`, async () => must(await S.sb.from("scores").upsert({event_code: code, id, judge: body.judge, team_id: body.teamId, scores: body.scores, submitted: body.submitted, total: body.total, updated_at: new Date().toISOString()})));
+    queueWrite(`score:${id}`, async () => {
+      const r = await S.sb.rpc("submit_score", {p_code: code, p_judge_code: judgeCode(code) || "", p_id: id, p_judge: body.judge, p_team: body.teamId, p_scores: body.scores, p_submitted: body.submitted, p_total: body.total});
+      if(r.error && /judge code/i.test(r.error.message || "")){ store.del("judge:"+code); toast("Your judge code changed. Ask your host for the new one.", {color:"#FF6B7A", ms:7000}); go("judgeName"); return; }
+      must(r);
+    });
   };
 
   if(qi >= qs.length){
