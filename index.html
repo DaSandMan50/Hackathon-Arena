@@ -67,7 +67,8 @@ p{margin:0}
 /* Brand bar */
 .bar{position:relative;z-index:20;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px;margin-bottom:2px;background:linear-gradient(var(--ink) 60%,transparent)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--ink)}
-.brandmark{display:flex;align-items:center;gap:10px;min-width:0}
+.brandmark{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 0}
+.brandmark > span:last-child{flex:1 1 auto;min-width:0;overflow:hidden}
 .mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;font-family:var(--f-display);font-weight:800;font-size:14px;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),color-mix(in srgb,var(--brand) 60%,#000));box-shadow:0 6px 18px -6px rgba(var(--brand-rgb),.6)}
 .brandmark b{font-family:var(--f-display);font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
 .brandmark small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -268,7 +269,8 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .tmr.done .digits{animation:doneFlash .8s steps(2) infinite}
 @keyframes doneFlash{50%{opacity:.25}}
 .tmr.big .digits{font-size:clamp(26px,min(4.4vw,6.6vh),68px)}
-.tmr.mid .digits{font-size:clamp(22px,4.2vh,34px)}
+.tmr.mid .digits{font-size:clamp(20px,3.6vh,34px)}
+@media (max-width:520px){.lb .qr svg{width:clamp(64px,10vh,96px);height:clamp(64px,10vh,96px)}.joinbox{padding:8px 12px;gap:10px}.joinurl{display:none}.lb-top{gap:12px}}
 .tmr.idle{display:none}
 .tmr-panel{flex:none;padding:12px 14px;border-radius:var(--r);border:1px solid var(--line-2);background:color-mix(in srgb,var(--panel) 90%,transparent)}
 .tmr-panel.idle{display:none}
@@ -299,6 +301,25 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .qbar .tag{font-family:var(--f-mono);font-size:9px;letter-spacing:.12em;margin-left:6px}
 .results{flex:none;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--r);border:1px solid rgba(var(--brand-rgb),.45);background:linear-gradient(160deg,rgba(var(--brand-rgb),.09),var(--panel) 55%)}
 .hidnote{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--muted)}
+/* Host tools */
+.tabs{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:calc(var(--r) * .75);background:var(--field);border:1px solid var(--line)}
+.tabs button{min-height:38px;border-radius:calc(var(--r) * .55);font-weight:700;font-size:13px;color:var(--muted);transition:background .2s,color .2s}
+.tabs button[aria-selected=true]{background:var(--panel-2);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.05),0 6px 16px -10px rgba(0,0,0,.6)}
+.hcard{flex:none;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--r);border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 92%,transparent)}
+.hcard .head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.hcard .head h3{font-size:15px}
+.hcard .sub{font-size:13px;color:var(--muted);line-height:1.45}
+.hcard .acts{display:flex;gap:8px;flex-wrap:wrap}
+.hcard .acts .btn{flex:1 1 auto}
+.hcard .big-val{font-family:var(--f-mono);font-weight:700;color:var(--brand);letter-spacing:.18em;line-height:1}
+.share-row{display:flex;align-items:center;gap:16px}
+.share-row .qr svg{width:clamp(88px,26vw,128px);height:clamp(88px,26vw,128px)}
+.state-pill{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;padding:4px 10px;border-radius:99px;border:1px solid var(--line-2);color:var(--muted);white-space:nowrap}
+.state-pill.on{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+.state-pill.warn{color:var(--brand);border-color:rgba(var(--brand-rgb),.45)}
+.nav-top{flex:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.host-link{align-self:center;color:var(--muted);font-weight:700;font-size:13px;padding:8px 4px}
+.host-link:hover{color:var(--text)}
 /* Modal */
 .modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
 .modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
@@ -331,7 +352,8 @@ body[data-view=board] #app{padding-block:0 max(16px,env(safe-area-inset-bottom,0
 .live{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;color:var(--good)}
 .live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 12px var(--good);animation:pulse 1.6s infinite}
 @keyframes pulse{50%{opacity:.25}}
-.stats{display:flex;gap:clamp(16px,3vw,40px);flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,max-content));gap:clamp(14px,3vw,40px)}
+@media (max-width:520px){.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stats small{letter-spacing:.06em;font-size:9px;line-height:1.3}}
 .stats div{display:flex;flex-direction:column}
 .stats b{font-family:var(--f-display);font-size:clamp(18px,min(2.4vw,3.4vh),32px);font-weight:800;line-height:1}
 .stats small{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
@@ -380,7 +402,7 @@ body[data-view=board] #app{padding-block:0 max(16px,env(safe-area-inset-bottom,0
 .toast .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--tc,var(--brand));box-shadow:0 0 10px var(--tc,var(--brand))}
 .toast b{color:var(--tc,var(--brand))}
 @keyframes tin{from{opacity:0;transform:translateX(-30px) scale(.96)}}
-.lb-tools{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;display:flex;gap:8px;opacity:.45;transition:opacity .2s}
+.lb-tools{flex:none;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;opacity:.55;transition:opacity .2s}
 .lb-tools:hover{opacity:1}
 .notice{padding:14px 16px;border-radius:12px;border:1px solid rgba(var(--brand-rgb),.4);background:rgba(var(--brand-rgb),.07);font-size:14px}
 .notice.bad{border-color:color-mix(in srgb,var(--bad) 45%,transparent);background:color-mix(in srgb,var(--bad) 8%,transparent)}
@@ -623,10 +645,29 @@ function modal({title, body, actions, warn}){
   const el = document.createElement("div"); el.className = "modal"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
   el.innerHTML = `<div class="box ${warn?"warn":""}"><h2 style="font-size:calc(24px * var(--dscale))">${title}</h2><div class="muted" style="display:flex;flex-direction:column;gap:10px">${body}</div><div class="row" style="justify-content:flex-end">${actions.map((a,i) => `<button class="btn sm ${a.danger?"danger":a.primary?"brand":"ghost"}" data-i="${i}">${esc(a.label)}</button>`).join("")}</div></div>`;
   document.body.appendChild(el);
-  el.querySelectorAll("button[data-i]").forEach(b => b.addEventListener("click", async () => { const a = actions[+b.dataset.i]; el.remove(); if(a.run) await a.run(); }));
+  el.querySelectorAll("button[data-i]").forEach(b => b.addEventListener("click", async () => { const a = actions[+b.dataset.i]; const vals = {}; el.querySelectorAll("input").forEach(i => vals[i.id] = i.value); el.remove(); if(a.run) await a.run(vals); }));
+  el.querySelectorAll("input").forEach(i => i.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); el.querySelector(".btn.brand, .btn.danger")?.click(); } }));
   el.addEventListener("click", e => { if(e.target === el) el.remove(); });
   const esc_ = e => { if(e.key === "Escape"){ el.remove(); removeEventListener("keydown", esc_); } }; addEventListener("keydown", esc_);
-  el.querySelector("button")?.focus();
+  (el.querySelector("input") || el.querySelector("button"))?.focus();
+}
+/* open Host tools for the current event: straight in if this device knows the password, otherwise ask */
+async function openHostTools(errMsg){
+  const code = S.code; if(!code) return;
+  const pw = hostPw(code);
+  if(pw && !errMsg){
+    try{ if(must(await S.sb.rpc("verify_host", {p_code: code, p_password: pw}))){ rememberHosted(code, S.event && S.event.name); saveSession({role:"host"}); go("hostLive"); return; } }catch{}
+    store.del("host:"+code);
+  }
+  modal({title:"Host tools", body:`<p>Enter the host password for <b style="color:var(--text)">${esc((S.event && S.event.name) || code)}</b> (${esc(code)}).</p>${errMsg?`<p class="err">${esc(errMsg)}</p>`:""}
+      <div><label class="lbl" for="hpwq">Host password</label><input type="password" id="hpwq" autocomplete="current-password"></div>`,
+    actions:[{label:"Cancel"}, {label:"Open host tools", primary:true, run: async v => {
+      const p = (v.hpwq || "").trim(); if(!p) return openHostTools("Enter your host password.");
+      try{
+        if(!must(await S.sb.rpc("verify_host", {p_code: code, p_password: p}))) return openHostTools("That password doesn't match this event.");
+        store.set("host:"+code, p); rememberHosted(code, S.event && S.event.name); saveSession({role:"host"}); go("hostLive");
+      }catch{ openHostTools("Couldn't reach the database. Check your connection and try again."); }
+    }}]});
 }
 async function keepEvent(code){
   const pw = hostPw(code); if(!pw){ toast("Sign in to Host tools with your code and password to keep this event."); return false; }
@@ -834,12 +875,12 @@ V.home = () => {
 };
 
 V.join = () => {
-  $app.innerHTML = `<div class="wrap center-v"><button class="back" id="bk">← Back</button>
+  $app.innerHTML = `<div class="wrap center-v"><button class="back" id="bk">← Home</button>
     <div class="stack"><p class="eyebrow">Join an event</p><h2>Enter your event code</h2></div>
     <form class="panel stack" id="f"><label class="lbl" for="code">Event code</label>
       <input type="text" id="code" class="code-input" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="•••••">
       <p class="err" id="er"></p><button class="btn brand block" type="submit">Join event</button></form>
-    <button class="back" id="host" style="align-self:center">Host tools for an existing event</button></div>`;
+    <button class="back" id="host" style="align-self:center">Running an event? Open host tools</button></div>`;
   const inp = $app.querySelector("#code");
   if(S.viewCtx.prefill){ inp.value = S.viewCtx.prefill; $app.querySelector("#f button[type=submit]").focus(); } else inp.focus();
   on("#bk", () => go("home"));
@@ -857,13 +898,15 @@ V.join = () => {
 
 V.roles = () => {
   if(!needEvent()) return;
-  $app.innerHTML = `${barHTML()}<div class="wrap"><button class="back" id="bk">← Change code</button>
+  $app.innerHTML = `${barHTML()}<div class="wrap"><button class="back" id="bk">← Change event</button>
     <div class="stack"><p class="eyebrow">${esc(orgName() || "Welcome")}</p><h2>${esc(S.event.name)}</h2><p class="muted">How are you taking part?</p></div>
     <div class="roles fill grow0">
       <button class="role" data-r="team"><span class="ic" style="background:rgba(79,216,255,.14);color:var(--cyan)">${ICONS.team}</span><span><b>I'm on a team</b><small>See your objectives and check them off as you build.</small></span></button>
       <button class="role" data-r="judge"><span class="ic" style="background:rgba(var(--brand-rgb),.14);color:var(--brand)">${ICONS.judge}</span><span><b>I'm a judge</b><small>Score each team 1 to 10 on every question.</small></span></button>
       <button class="role" data-r="board"><span class="ic" style="background:rgba(255,122,182,.14);color:#FF7AB6">${ICONS.board}</span><span><b>Leaderboard screen</b><small>Put this on the projector. It updates live.</small></span></button>
-    </div></div>`;
+    </div>
+    <button class="host-link" id="ht">Running this event? Open host tools →</button></div>`;
+  on("#ht", () => openHostTools());
   on("#bk", () => { leave(); go("join"); });
   onAll(".role", el => {
     const r = el.dataset.r; saveSession({role:r});
@@ -916,7 +959,7 @@ V.create = () => {
       <div class="fill">${qHTML}<button class="btn ghost block" id="addQ" type="button">+ Add question</button></div>`
   ];
   $app.innerHTML = `<div class="wrap">
-    <div class="spread" style="flex:none;padding-top:14px"><button class="back" id="bk">← ${editing?"Back to event":"Back"}</button><span class="eyebrow">${editing?`Editing ${esc(S.code)}`:"Create an event"}</span></div>
+    <div class="spread" style="flex:none;padding-top:14px"><button class="back" id="bk">← ${editing?"Host tools":"Home"}</button><span class="eyebrow">${editing?`Editing ${esc(S.code)}`:"Create an event"}</span></div>
     <div class="steps" style="flex:none">${STEPS.map((n,i) => `<button type="button" class="${i===step?"on":i<step?"past":""}" data-s="${i}"><i></i>${i+1}. ${n}</button>`).join("")}</div>
     <h2 style="flex:none">${["Pick a theme","Add your branding","Teams & objectives","Judging questions"][step]}</h2>
     ${panes[step]}
@@ -990,7 +1033,7 @@ V.create = () => {
 };
 
 V.hostLogin = () => {
-  $app.innerHTML = `<div class="wrap center-v"><button class="back" id="bk">← Back</button>
+  $app.innerHTML = `<div class="wrap center-v"><button class="back" id="bk">← Join an event</button>
     <div class="stack"><p class="eyebrow">Host tools</p><h2>Manage your event</h2><p class="muted">Enter your event code and the host password you chose when you created it.</p></div>
     <form class="panel stack" id="f">
       <div><label class="lbl" for="hc">Event code</label><input type="text" id="hc" class="code-input" maxlength="8" autocomplete="off" placeholder="•••••"></div>
@@ -1012,32 +1055,48 @@ V.hostLogin = () => {
 
 V.hostLive = () => {
   if(!needEvent()) return;
-  const ts = teams(), qs = questions();
-  const judges = new Set(Object.values(S.scores).map(s => s.judge)).size;
-  $app.innerHTML = `${barHTML()}<div class="wrap">
-    <div class="stack" style="text-align:center;align-items:center;gap:8px;flex:none">
-      <p class="eyebrow">${S.ended?"Event ended · final results are frozen":S.viewCtx.fresh?"Your event is live":"Host tools"}</p>
-      <div class="row" style="justify-content:center;gap:18px;flex-wrap:nowrap">${qrSVG(joinURL(S.code)) ? `<div class="qr sm">${qrSVG(joinURL(S.code))}</div>` : ""}<div class="bigcode" id="code" style="font-size:clamp(34px,min(11vw,8vh),84px)">${esc(S.code)}</div></div>
-      <p class="muted" style="max-width:44ch">Everyone joins with this code. Judges also need the private judge code below.</p>
-      <div class="row" style="justify-content:center"><button class="btn sm" id="copy">Copy code</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
-    </div>
-    ${S.expiresAt ? `<div class="expiry ${S.expiresAt - Date.now() < 2*DAY ? "soon" : ""}"><span>${S.expiresAt - Date.now() < 2*DAY ? "⚠ " : ""}Auto-deletes ${untilText(S.expiresAt)} (${fmtDate(S.expiresAt)}) ${S.ended ? "since the event ended" : "if there's no activity"}.</span><button class="btn sm ghost" id="keep">Keep event</button></div>` : ""}
-    <div class="panel spread" style="padding-block:12px"><div><p class="eyebrow" style="color:var(--muted)">Judge code · share only with judges</p><div class="mono" id="jcode" style="font-size:clamp(22px,4vh,30px);letter-spacing:.2em;color:var(--brand);font-weight:700">${S.judgeCodeFor && S.judgeCodeFor.code === S.code ? esc(S.judgeCodeFor.value) : "••••••"}</div></div>
-      <div class="row"><button class="btn sm" id="jcopy">Copy</button><button class="btn sm ghost" id="jnew">New code</button></div></div>
-    <div class="panel spread" style="padding-block:12px;gap:14px"><div style="flex:1;min-width:150px">${timerState().status === "idle" ? `<p class="eyebrow" style="color:var(--muted)">Countdown</p><p class="muted" style="font-size:13px">No timer running</p>` : timerHTML("mid")}</div>
-      <div class="row"><button class="btn sm ${timerState().status === "idle" ? "brand" : ""}" id="tmrbtn">${timerState().status === "idle" || timerState().status === "done" ? "Start timer" : "Timer controls"}</button>
-      <button class="btn sm ${S.revealed ? "ghost" : "brand"}" id="reveal">${S.revealed ? "Hide scores" : "Reveal scores"}</button></div></div>
-    <div class="panel" style="flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;gap:14px"><div class="spread"><h3>${S.ended?"Final status":"Live status"}</h3>${S.ended?`<span class="pill">ENDED</span>`:`<span class="live">LIVE</span>`}</div>
-      <div class="stats"><div><b>${ts.length}</b><small>teams</small></div><div><b>${qs.length}</b><small>questions</small></div><div><b>${judges}</b><small>judges</small></div><div><b>${submittedCount()}</b><small>scorecards</small></div></div>
-      ${S.revealed ? "" : `<p class="hidnote">Scores are hidden from everyone until you reveal them. Only you can see these totals.</p>`}
-      <div class="race fill">${ts.map((t,i) => { const p = teamProgress(t), sc = teamScore(t), c = teamColor(t,i); return `
+  const ts = teams(), qs = questions(), tab = S.viewCtx.tab || "share", tst = timerState();
+  const judges = new Set(Object.values(S.scores).map(s => s.judge)).size, cards = submittedCount();
+  const soon = S.expiresAt && S.expiresAt - Date.now() < 2*DAY;
+  const status = S.ended ? "Event ended" : S.viewCtx.fresh ? "Your event is live" : "Live";
+  const share = `<div class="fill">
+      <div class="hcard"><div class="head"><h3>Event code</h3><span class="state-pill">for everyone</span></div>
+        <div class="share-row">${qrSVG(joinURL(S.code)) ? `<div class="qr">${qrSVG(joinURL(S.code))}</div>` : ""}
+          <div class="stack" style="gap:6px;min-width:0"><div class="big-val" id="code" style="font-size:clamp(30px,9vw,46px)">${esc(S.code)}</div><p class="sub">Teams, judges and the projector join with this code, or by scanning the QR code.</p></div></div>
+        <div class="acts"><button class="btn sm" id="copy">Copy code</button><button class="btn sm" id="copylink">Copy join link</button></div></div>
+      <div class="hcard"><div class="head"><h3>Judge code</h3><span class="state-pill warn">judges only</span></div>
+        <div class="big-val" id="jcode" style="font-size:clamp(24px,7vw,32px)">${S.judgeCodeFor && S.judgeCodeFor.code === S.code ? esc(S.judgeCodeFor.value) : "••••••"}</div>
+        <p class="sub">Judges enter this after choosing "I'm a judge". Make a new one if it gets out.</p>
+        <div class="acts"><button class="btn sm" id="jcopy">Copy judge code</button><button class="btn sm ghost" id="jnew">Make a new code</button></div></div>
+      ${S.viewCtx.fresh ? `<div class="notice">Write down your event code and host password. You need both to open host tools on another device.</div>` : ""}
+    </div>`;
+  const run = `<div class="fill">
+      <div class="hcard"><div class="head"><h3>Countdown</h3><span class="state-pill ${tst.status==="running"?"on":""}">${{idle:"not started",running:"running",paused:"paused",done:"time's up"}[tst.status]}</span></div>
+        ${tst.status === "idle" ? `<p class="sub">Start a countdown and it shows live on every team screen and the leaderboard.</p>` : timerHTML("mid")}
+        <div class="acts"><button class="btn sm ${tst.status === "idle" || tst.status === "done" ? "brand" : ""}" id="tmrbtn">${tst.status === "idle" || tst.status === "done" ? "Start a countdown" : "Pause, add time or reset"}</button></div></div>
+      <div class="hcard"><div class="head"><h3>Scores</h3><span class="state-pill ${S.revealed?"on":"warn"}">${S.revealed ? "revealed" : "hidden"}</span></div>
+        <p class="sub">${S.revealed ? "Everyone can see the scores and each team's breakdown." : `${cards} judge scorecard${cards===1?"":"s"} in. Scores stay hidden from everyone until you reveal them.`}</p>
+        <div class="acts"><button class="btn sm ${S.revealed ? "ghost" : "brand"}" id="reveal">${S.revealed ? "Hide scores again" : "Reveal scores"}</button></div></div>
+      <div class="hcard"><div class="head"><h3>Event</h3><span class="state-pill ${S.ended?"":"on"}">${S.ended ? "ended" : "running"}</span></div>
+        ${S.expiresAt ? `<p class="sub" style="${soon?"color:var(--bad)":""}">${soon?"⚠ ":""}Deletes automatically ${untilText(S.expiresAt)} (${fmtDate(S.expiresAt)}) ${S.ended ? "since it ended" : "if there's no activity"}.</p>` : ""}
+        <div class="acts">${S.ended
+          ? `<button class="btn sm brand" id="reopen">Reopen event</button><button class="btn sm" id="keep">Keep event</button><button class="btn sm ghost" id="del">Delete now</button>`
+          : `<button class="btn sm" id="edit">Edit teams & questions</button><button class="btn sm" id="keep">Keep event</button><button class="btn sm ghost" id="reset">Clear scores</button><button class="btn sm ghost" id="end">End event</button>`}</div></div>
+    </div>`;
+  const stat = `<div class="hcard" style="flex:1 1 auto;min-height:0">
+      <div class="stats"><div><b>${ts.length}</b><small>teams</small></div><div><b>${qs.length}</b><small>questions</small></div><div><b>${judges}</b><small>judges</small></div><div><b>${cards}</b><small>scorecards</small></div></div>
+      ${S.revealed ? "" : `<p class="hidnote">Totals below are a preview only you can see.</p>`}
+      <div class="race fill">${ts.map((t,i) => { const sc = teamScore(t), c = teamColor(t,i); return `
         <div class="race-row"><span class="nm" style="color:${esc(c)}">${esc(t.name)}</span>${segsHTML(t,c)}<span class="mono" style="text-align:right;color:var(--brand)">${sc.sum}</span></div>`; }).join("")}</div>
-    </div>
-    ${S.ended
-      ? `<div class="row"><button class="btn brand" id="reopen" style="flex:1">Reopen event</button><button class="btn ghost" id="del">Delete event now</button></div>`
-      : `<div class="row"><button class="btn" id="edit" style="flex:2">Edit event</button><button class="btn ghost" id="reset" style="flex:1">Clear scores</button><button class="btn ghost" id="end" style="flex:1">End event</button></div>`}
-    <div class="spread" style="flex:none"><p class="footer-note" style="text-align:left">${S.ended ? "Ended events are deleted automatically after 7 days." : S.viewCtx.fresh ? "Write down your code and host password. You need both to edit later." : "Events with no activity for 2 weeks are deleted automatically."}</p><button class="back" id="exit" style="align-self:auto">Leave host tools</button></div>
+    </div>`;
+  $app.innerHTML = `${barHTML()}<div class="wrap">
+    <div class="nav-top"><button class="back" id="exit">← Exit host tools</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
+    <div class="spread" style="flex:none"><h2>Host tools</h2><span class="${S.ended ? "state-pill" : "live"}">${esc(status.toUpperCase())}</span></div>
+    <div class="tabs" role="tablist">${[["share","Share codes"],["run","Run event"],["status","Live status"]].map(([k,l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>
+    ${tab === "share" ? share : tab === "run" ? run : stat}
   </div>`;
+  onAll("[data-tab]", el => { S.viewCtx.tab = el.dataset.tab; V.hostLive(); });
+  on("#copylink", async () => { try{ await navigator.clipboard.writeText(joinURL(S.code)); toast("Join link copied"); }catch{ toast("Join link: " + joinURL(S.code), {ms:8000}); } });
   on("#copy", async () => { try{ await navigator.clipboard.writeText(S.code); toast("Code copied"); }catch{ const r = document.createRange(); r.selectNodeContents($app.querySelector("#code")); getSelection().removeAllRanges(); getSelection().addRange(r); } });
   on("#board", () => { saveSession({role:"board"}); go("board"); });
   on("#edit", () => go("create", {edit:true}));
@@ -1099,13 +1158,13 @@ V.hostLive = () => {
   on("#reopen", async () => { if(await hostCall("reopen_event", "Event reopened. Judging and checklists are live again.")){ S.ended = false; render(); } });
   on("#del", () => modal({warn:true, title:"Delete this event?", body:`<p>Permanently delete <b style="color:var(--text)">${esc(S.code)}</b> with all its scores and progress? This can't be undone.</p>`,
     actions:[{label:"Cancel"}, {label:"Delete forever", danger:true, run: async () => { const code = S.code; if(await hostCall("delete_event", "Event deleted")){ store.del("host:"+code); forgetHosted(code); leave(); go("home"); } }}]}));
-  on("#exit", () => { store.del("host:"+S.code); leave(); go("home"); });
+  on("#exit", () => { saveSession({role:null}); go("roles"); });
 };
 
 /* ----- Team ----- */
 V.teamPick = () => {
   if(!needEvent()) return;
-  $app.innerHTML = `${barHTML()}<div class="wrap"><button class="back" id="bk">← Back</button>
+  $app.innerHTML = `${barHTML()}<div class="wrap"><button class="back" id="bk">← Choose role</button>
     <div class="stack"><p class="eyebrow">${esc(S.event.name)}</p><h2>Which team are you on?</h2></div>
     <div class="fill">${teams().map((t,i) => { const p = teamProgress(t), c = teamColor(t,i); return `
       <button class="pick" data-id="${esc(t.id)}"><span class="swatch" style="width:16px;height:16px;background:${esc(c)}"></span>
@@ -1195,7 +1254,7 @@ function celebrate(name, color){
 V.judgeName = () => {
   if(!needEvent()) return;
   const name = (S.session.judgeName || "").split(" ");
-  $app.innerHTML = `${barHTML()}<div class="wrap center-v"><button class="back" id="bk">← Back</button>
+  $app.innerHTML = `${barHTML()}<div class="wrap center-v"><button class="back" id="bk">← Choose role</button>
     <div class="stack"><p class="eyebrow">Judging</p><h2>Judge sign-in</h2><p class="muted">Enter the judge code from your host and your name. Your name is attached to your scorecards.</p></div>
     <form class="panel stack" id="f">
       <div><label class="lbl" for="jc">Judge code</label><input type="text" id="jc" class="code-input" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="••••••" value="${esc(judgeCode(S.code) || "")}"></div>
@@ -1223,7 +1282,7 @@ V.judgeTeams = () => {
   if(!needEvent()) return;
   const qn = questions().length;
   $app.innerHTML = `${barHTML()}<div class="wrap">
-    <div class="spread"><button class="back" id="bk">← Back</button><button class="back" id="nm">Not ${esc(S.session.judgeName.split(" ")[0])}?</button></div>
+    <div class="spread"><button class="back" id="bk">← Choose role</button><button class="back" id="nm">Switch judge</button></div>
     <div class="stack"><p class="eyebrow">Judge · ${esc(S.session.judgeName)}</p><h2>Pick a team to score</h2></div>
     <div class="fill">${teams().map((t,i) => { const c = myCard(t.id), answered = c ? Object.keys(c.scores||{}).length : 0, p = teamProgress(t), col = teamColor(t,i); return `
       <button class="pick" data-id="${esc(t.id)}"><span class="swatch" style="width:16px;height:16px;background:${esc(col)}"></span>
@@ -1291,7 +1350,7 @@ V.judgeScore = () => {
   }
   const q = qs[qi], val = card.scores[q.id] || 0;
   $app.innerHTML = `${barHTML()}<div class="wrap">
-    <div class="spread"><button class="back" id="bk">← Teams</button><span class="saved" style="opacity:${val?.35:0}">✓ saved</span></div>
+    <div class="spread"><button class="back" id="bk">← All teams</button><span class="saved" style="opacity:${val?.35:0}">✓ saved</span></div>
     <div class="qhead"><p class="eyebrow" style="color:${esc(color)}">Scoring ${esc(t.name)} · Question ${qi+1} of ${qs.length}</p>
       <div class="dots">${qs.map((x,i) => `<i class="${i===qi?"cur":card.scores[x.id]?"on":""}"></i>`).join("")}</div></div>
     <p class="qtext">${esc(q.text)}</p>
@@ -1334,8 +1393,9 @@ V.board = () => {
       <div class="lb-timer">${timerHTML("big")}</div>
       <div class="joinbox">${qrSVG(joinURL(S.code)) ? `<div class="qr" aria-label="QR code to join this event">${qrSVG(joinURL(S.code))}</div>` : ""}<div><p class="eyebrow" style="color:var(--muted);margin-bottom:6px">Scan or enter code</p><div class="mono">${esc(S.code)}</div><div class="joinurl">${esc(siteURL().replace(/^https?:\/\//,""))}</div></div></div></div>
     <div class="stats" id="stats"></div>
-    <div id="stage" style="flex:1;display:flex;flex-direction:column"></div></div>
-  <div class="lb-tools"><button class="btn sm" id="fs">Fullscreen</button><button class="btn sm ghost" id="ex">Exit</button></div>`;
+    <div id="stage" style="flex:1;display:flex;flex-direction:column"></div>
+    <div class="lb-tools"><button class="btn sm ghost" id="ex">← Exit leaderboard</button><button class="btn sm ghost" id="ht">Host tools</button><button class="btn sm" id="fs">Fullscreen</button></div></div>`;
+  on("#ht", () => openHostTools());
   on("#fs", () => { try{ (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen())?.catch?.(()=>{}); }catch{} });
   on("#ex", () => { saveSession({role:null}); go("roles"); });
   boardRender(true); tickTimers();
