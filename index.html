@@ -282,9 +282,55 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .lrow.veil .lscore .num{color:transparent;text-shadow:0 0 18px rgba(var(--brand-rgb),.5)}
 .lrow.flip{animation:rowFlip .9s var(--spring)}
 @keyframes rowFlip{0%{transform:rotateX(80deg);filter:brightness(2)}100%{transform:none}}
-.lrow.winner{border-color:var(--brand);box-shadow:0 0 0 2px rgba(var(--brand-rgb),.6),0 0 120px -10px rgba(var(--brand-rgb),.9);animation:winnerGlow 1.6s ease-in-out infinite}
-@keyframes winnerGlow{50%{box-shadow:0 0 0 2px rgba(var(--brand-rgb),.9),0 0 160px 0 rgba(var(--brand-rgb),1)}}
-.crown{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;padding:4px 10px;border-radius:99px;background:var(--brand);color:var(--on-brand);font-weight:700;animation:tin .6s var(--spring);z-index:3}
+.lrow.winner{border-color:rgba(var(--brand-rgb),.75);box-shadow:0 0 0 1px rgba(var(--brand-rgb),.35),0 24px 60px -30px rgba(var(--brand-rgb),.8)}
+.lrow.winner .rank{background:var(--brand);color:var(--on-brand)}
+.pill.win{color:var(--brand);border-color:rgba(var(--brand-rgb),.55);background:rgba(var(--brand-rgb),.1);letter-spacing:.14em}
+/* Race reveal */
+.race-ov{position:fixed;inset:0;z-index:57;display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--tc,var(--brand)) 14%,transparent),transparent 60%),color-mix(in srgb,var(--ink) 96%,transparent);backdrop-filter:blur(10px);animation:fadeIn .5s ease;overflow:hidden}
+.race-ov::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),var(--track) calc(10% - 1px) 10%);opacity:.35;pointer-events:none;mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.race-stage{position:relative;width:min(1180px,100%);max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:clamp(16px,3vh,34px)}
+.race-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.race-head h2{font-size:calc(clamp(26px,min(4vw,5.4vh),56px) * var(--dscale));letter-spacing:-.03em}
+.race-head .sub{font-family:var(--f-mono);font-size:clamp(10px,1.3vh,13px);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.lanes{display:flex;flex-direction:column;gap:clamp(12px,2.6vh,30px)}
+.lane{--tc:var(--brand);display:grid;grid-template-columns:minmax(80px,220px) minmax(0,1fr) clamp(56px,8vw,96px);align-items:center;gap:clamp(10px,2vw,24px);transition:opacity .6s ease,filter .6s ease}
+.lane .nm{font-family:var(--f-display);font-weight:700;font-size:calc(clamp(14px,min(2vw,2.6vh),28px) * var(--dscale));color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:10px}
+.lane .nm i{width:10px;height:10px;border-radius:3px;background:var(--tc);flex:none}
+.lane .nm em{font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--tc);border:1px solid color-mix(in srgb,var(--tc) 50%,transparent);border-radius:99px;padding:2px 7px}
+.lane .trk{position:relative;height:clamp(8px,1.4vh,14px);border-radius:99px;background:var(--track)}
+.lane .trk::after{content:"";position:absolute;right:0;top:-12px;bottom:-12px;width:2px;background:repeating-linear-gradient(to bottom,var(--muted) 0 4px,transparent 4px 8px);opacity:.6}
+.lane .fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:inherit;background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 10%,transparent),var(--tc))}
+.lane .head{position:absolute;top:50%;left:0;width:clamp(12px,2.2vh,20px);height:clamp(12px,2.2vh,20px);border-radius:50%;transform:translate(-50%,-50%);background:var(--text);box-shadow:0 0 0 3px var(--tc),0 0 calc(22px * var(--glow)) 2px var(--tc)}
+.lane .val{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;font-size:clamp(16px,min(2.4vw,3vh),32px);color:var(--muted);transition:color .3s}
+.lane.lead .val{color:var(--text)}
+.lane.out{opacity:.32;filter:saturate(.4)}
+.lane.win .val{color:var(--brand)}
+.lane.win .trk{box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 60%,transparent),0 0 30px -6px var(--tc)}
+.finish-lbl{display:flex;justify-content:flex-end;font-family:var(--f-mono);font-size:10px;letter-spacing:.22em;color:var(--muted);padding-right:calc(clamp(56px,8vw,96px) + clamp(10px,2vw,24px))}
+.win-panel{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(8px,1.8vh,18px);animation:winUp .9s var(--ease) both}
+@keyframes winUp{from{opacity:0;transform:translateY(24px)}}
+.win-panel .kick{font-family:var(--f-mono);font-size:clamp(11px,1.5vh,14px);letter-spacing:.34em;text-transform:uppercase;color:var(--brand)}
+.win-panel .wname{position:relative;font-family:var(--f-display);font-weight:800;line-height:.95;letter-spacing:-.035em;color:var(--text);font-size:calc(clamp(40px,min(9vw,11vh),128px) * var(--dscale));max-width:100%;overflow-wrap:anywhere}
+.win-panel .wname::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-.12em;height:3px;background:linear-gradient(90deg,transparent,var(--tc),transparent);transform:scaleX(0);animation:underline 1s .5s var(--ease) forwards}
+@keyframes underline{to{transform:scaleX(1)}}
+.win-panel .wscore{display:flex;align-items:baseline;gap:10px;font-family:var(--f-mono)}
+.win-panel .wscore b{font-size:clamp(34px,min(6vw,7vh),72px);color:var(--brand);font-variant-numeric:tabular-nums}
+.win-panel .wscore span{color:var(--muted);font-size:clamp(12px,1.6vh,15px);letter-spacing:.08em}
+.standings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;width:min(760px,100%);background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:clamp(4px,1vh,10px)}
+.standings div{display:flex;flex-direction:column;gap:4px;padding:clamp(10px,1.8vh,16px);background:color-mix(in srgb,var(--panel) 94%,transparent);text-align:left}
+.standings small{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;color:var(--muted)}
+.standings b{font-family:var(--f-display);font-size:calc(clamp(14px,2.2vh,20px) * var(--dscale));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.standings span{font-family:var(--f-mono);font-weight:700;color:var(--text)}
+.standings .me{box-shadow:inset 0 0 0 1px var(--tc)}
+.standings .first{box-shadow:inset 0 2px 0 var(--brand)}
+.standings .first small{color:var(--brand)}
+.lane.me .nm{color:var(--tc)}
+#rstatus.hot{color:var(--brand)}
+.race-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.res-card{width:min(520px,100%);display:flex;flex-direction:column;gap:clamp(10px,1.8vh,16px);text-align:left;animation:winUp .8s var(--ease) both}
+.res-card .ord{font-family:var(--f-display);font-weight:800;line-height:.9;letter-spacing:-.04em;font-size:calc(clamp(64px,min(20vw,14vh),132px) * var(--dscale));color:var(--tc)}
+.res-card .ord sup{font-size:.36em;letter-spacing:0;vertical-align:.95em;margin-left:.04em}
+@media (max-width:600px){.lane{grid-template-columns:minmax(64px,96px) minmax(0,1fr) 44px;gap:10px}.lane .nm em{display:none}.finish-lbl{padding-right:54px}}
 .reveal-ov{position:fixed;inset:0;z-index:57;display:grid;place-items:center;text-align:center;background:radial-gradient(circle at 50% 45%,rgba(var(--brand-rgb),.22),color-mix(in srgb,var(--ink) 94%,transparent) 65%);backdrop-filter:blur(8px);animation:fadeIn .4s ease;padding:24px;overflow:hidden}
 .reveal-ov .inner{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2vh,18px);max-width:640px;width:100%;max-height:100%;overflow-y:auto}
 .reveal-ov .kick{font-family:var(--f-mono);letter-spacing:.3em;text-transform:uppercase;color:var(--brand);font-size:clamp(12px,1.6vh,15px)}
@@ -1208,7 +1254,7 @@ V.teamBoard = () => {
   </div>`;
   if(crossed) toast(`<b>${esc(crossed[1])}.</b> ${esc(crossed[2])}`, {color});
   tickTimers();
-  if(S.revealed && judgesFor(t) && S.scoresLoaded && !store.get("revealSeen:" + S.code, false) && !document.querySelector(".reveal-ov")) setTimeout(teamReveal, 200);
+  if(S.revealed && judgesFor(t) && S.scoresLoaded && !store.get("revealSeen:" + S.code, false) && !document.querySelector(".race-ov")) setTimeout(teamReveal, 200);
   // effects for freshly completed objectives
   if(fresh.size){
     fresh.forEach(id => { const el = $app.querySelector(`.task[data-id="${CSS.escape(id)}"] .box`); if(el){ const r = el.getBoundingClientRect(); burst(r.left+r.width/2, r.top+r.height/2, 34, [color]); } });
@@ -1444,7 +1490,7 @@ function boardRender(first, eventEdit){
   const objTotal = ts.reduce((a,t) => a + (t.objectives||[]).length, 0), objDone = ts.reduce((a,t) => a + doneSet(t).size, 0);
   const st = document.getElementById("stats");
   if(st) st.innerHTML = `<div><b>${ts.length}</b><small>teams</small></div><div><b>${objDone}<span class="muted" style="font-size:.6em">/${objTotal}</span></b><small>objectives done</small></div><div><b>${ts.filter(t => teamProgress(t).finished).length}</b><small>builds submitted</small></div><div><b>${n}</b><small>scorecards in</small></div>`;
-  const lbs = document.getElementById("lbstatus"); if(lbs) lbs.textContent = (S.ended ? "FINAL RESULTS" : "LIVE") + (orgName() ? " · " + orgName().toUpperCase() : "");
+  const lbs = document.getElementById("lbstatus"); if(lbs) lbs.textContent = (S.ended || S.revealed ? "FINAL RESULTS" : "LIVE") + (orgName() ? " · " + orgName().toUpperCase() : "");
   const mode = (n || S.ended || S.revealed) ? "board" : "idle";
   if(mode !== boardState.mode){
     const wasIdle = boardState.mode === "idle";
@@ -1482,7 +1528,9 @@ function boardRender(first, eventEdit){
     el.style.setProperty("--tc", color);
     el.querySelector(".rank").textContent = rank+1;
     el.querySelector(".lname").textContent = r.t.name;
-    el.querySelector(".lsub").innerHTML = r.p.finished ? `<span class="pill done">✓ Build submitted</span>` : `<span class="pill" style="color:${esc(color)}">Building · ${Math.round(r.p.pct*100)}%</span>`;
+    const isWin = S.revealed && !boardState.revealing && rank === 0 && r.sc.sum > 0;
+    el.querySelector(".lsub").innerHTML = isWin ? `<span class="pill win">WINNER</span>` : r.p.finished ? `<span class="pill done">✓ Build submitted</span>` : `<span class="pill" style="color:${esc(color)}">Building · ${Math.round(r.p.pct*100)}%</span>`;
+    el.classList.toggle("winner", isWin);
     el.querySelector(".segwrap").innerHTML = segsHTML(r.t, color, pop && pop.ids);
     el.querySelector(".lprog small").textContent = `${r.p.n}/${r.p.total} objectives`;
     const jn = judgesFor(r.t), num = el.querySelector(".num");
@@ -1494,7 +1542,7 @@ function boardRender(first, eventEdit){
     else { const prevShown = boardState.shown.get(id) || 0; if(prevShown !== r.sc.sum || num.textContent === "???"){ countUp(num, prevShown, r.sc.sum, 1200); boardState.shown.set(id, r.sc.sum); } }
     requestAnimationFrame(() => { el.querySelector(".sbar i").style.width = (hidden || veiled ? 0 : r.sc.sum/top*100)+"%"; });
     el.classList.toggle("lead", !hidden && !veiled && rank === 0 && r.sc.sum > 0);
-    if(hidden || veiled){ el.classList.remove("winner"); el.querySelector(".crown")?.remove(); }
+
     if(boardState.pulse === id){ el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
     if(pop && !REDUCED){
       el.querySelectorAll(".sweep,.obj-badge").forEach(x => x.remove());
@@ -1632,58 +1680,101 @@ function startReveal(){
   if(S.view === "teamBoard"){ teamReveal(); V.teamBoard(); return; }
   render();
 }
-function revealCountdown(done){
-  const ov = document.createElement("div"); ov.className = "reveal-ov";
-  ov.innerHTML = `<div class="inner"><p class="kick">The results are in</p><div class="count" id="rc">3</div></div>`;
-  document.body.appendChild(ov);
-  if(REDUCED){ ov.remove(); done(); return; }
-  let n = 3; const rc = ov.querySelector("#rc");
-  const step = () => { n--; if(n > 0){ rc.textContent = n; rc.style.animation = "none"; void rc.offsetWidth; rc.style.animation = ""; setTimeout(step, 850); } else { ov.style.transition = "opacity .5s"; ov.style.opacity = 0; setTimeout(() => { ov.remove(); done(); }, 450); } };
-  setTimeout(step, 1100);
+const ordinal = n => n + (["th","st","nd","rd"][(n%100-20)%10] || ["th","st","nd","rd"][n%100] || "th");
+const ordHTML = n => `${n}<sup>${ordinal(n).slice(String(n).length)}</sup>`;
+/* Race to the finish: every team gets a lane, the leaders trade places, the winner surges over the line. */
+function runRace(ov, {highlightId, onDone}){
+  const ts = teams(), ranked = finalRanking(), W = Math.max(1, ranked[0] ? ranked[0].sc.sum : 1);
+  const winners = new Set(ranked.filter(r => r.sc.sum === ranked[0].sc.sum && r.sc.sum > 0).map(r => r.t.id));
+  const order = ts.map((t,i) => ({t, i, F: teamScore(t).sum, c: teamColor(t, i)}));
+  const stage = ov.querySelector(".race-stage");
+  stage.innerHTML = `<div class="race-head"><div class="stack" style="gap:6px"><span class="sub">${esc(S.event.name)}</span><h2>Final results</h2></div><span class="sub" id="rstatus">Tallying ${submittedCount()} scorecards</span></div>
+    <div class="finish-lbl">FINISH</div>
+    <div class="lanes">${order.map(o => `<div class="lane ${o.t.id === highlightId ? "me" : ""}" data-id="${esc(o.t.id)}" style="--tc:${esc(o.c)}"><span class="nm"><i></i><span style="min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(o.t.name)}</span>${o.t.id === highlightId ? "<em>YOU</em>" : ""}</span><div class="trk"><div class="fill"></div><div class="head"></div></div><span class="val">0</span></div>`).join("")}</div>`;
+  const lanes = order.map(o => { const el = stage.querySelector(`.lane[data-id="${CSS.escape(o.t.id)}"]`); return {...o, el, fill: el.querySelector(".fill"), head: el.querySelector(".head"), val: el.querySelector(".val"), target: o.F / W, ph: Math.random()*Math.PI*2, fq: 1.4 + Math.random()*1.2, mid: 0}; });
+  const T = REDUCED ? 1 : (highlightId ? 6200 : 7400), SPLIT = .72;
+  const easeIO = x => x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2)/2, easeOut = x => 1 - Math.pow(1 - x, 3);
+  const t0 = performance.now();
+  const frame = now => {
+    const t = Math.min(1, (now - t0) / T);
+    let leadX = -1, lead = null;
+    lanes.forEach(L => {
+      let x;
+      if(t < SPLIT){
+        const u = t / SPLIT;                                    // pack runs together, swapping the lead
+        x = (.8 + .06 * L.target) * easeIO(u) + .045 * Math.sin(L.fq * u * Math.PI * 2 + L.ph) * Math.sin(u * Math.PI);
+        L.mid = x;
+      } else {
+        if(!stage.dataset.hot){ stage.dataset.hot = 1; const rs = stage.querySelector("#rstatus"); if(rs){ rs.textContent = "Final stretch"; rs.classList.add("hot"); } }
+        const u = (t - SPLIT) / (1 - SPLIT);                    // final stretch: the field settles, the winner surges late
+        x = winners.has(L.t.id) ? L.mid + (L.target - L.mid) * u * u : L.mid + (L.target - L.mid) * easeOut(u);
+      }
+      x = Math.max(0, Math.min(L.target === 0 ? .02 : 1, x));
+      const pct = x * 100;
+      L.fill.style.width = pct + "%"; L.head.style.left = pct + "%";
+      L.val.textContent = Math.round(Math.min(L.F, x * W));
+      if(x > leadX){ leadX = x; lead = L; }
+    });
+    lanes.forEach(L => L.el.classList.toggle("lead", L === lead && t < 1));
+    if(t < 1){ requestAnimationFrame(frame); return; }
+    lanes.forEach(L => { L.val.textContent = L.F; L.el.classList.toggle("win", winners.has(L.t.id)); L.el.classList.toggle("out", !winners.has(L.t.id)); });
+    const rs = stage.querySelector("#rstatus"); if(rs) rs.textContent = winners.size > 1 ? "It's a tie" : "Winner decided";
+    setTimeout(onDone, REDUCED ? 0 : 1300);
+  };
+  requestAnimationFrame(frame);
+  return {ranked, winners};
+}
+function standingsHTML(ranked, highlightId){
+  return `<div class="standings">${ranked.map((r,k) => `<div class="${r.t.id === highlightId ? "me" : ""} ${r.sc.sum === ranked[0].sc.sum && r.sc.sum > 0 ? "first" : ""}" style="--tc:${esc(teamColor(r.t, r.i))}"><small>${ordinal(k+1).toUpperCase()}</small><b>${esc(r.t.name)}</b><span>${r.sc.sum} pts</span></div>`).join("")}</div>`;
 }
 function boardReveal(){
   if(!boardState) return;
   boardState.known = new Set(Object.entries(S.scores).filter(([,c]) => c.submitted).map(([k,c]) => k+":"+c.total)); boardState.leader = null;
-  boardState.revealing = true; boardState.mode = null;
-  boardRender(false);
-  revealCountdown(() => {
-    if(!boardState) return;
-    const order = [...boardState.rows.keys()];          // already in final rank order
-    const ts = teams();
-    order.slice().reverse().forEach((id, k) => setTimeout(() => {
-      const el = boardState?.rows.get(id); if(!el) return;
-      const t = ts.find(x => x.id === id), sum = teamScore(t).sum, isWin = k === order.length - 1 && sum > 0;
-      el.classList.remove("veil"); el.classList.remove("flip"); void el.offsetWidth; el.classList.add("flip");
-      countUp(el.querySelector(".num"), 0, sum, isWin ? 1800 : 1100); boardState.shown.set(id, sum);
-      if(isWin){ setTimeout(() => { el.classList.add("winner"); const c = document.createElement("span"); c.className = "crown"; c.textContent = "WINNER"; el.appendChild(c); toast(`<b>${esc(t.name)}</b> wins!`, {ms:8000, color: teamColor(t, ts.indexOf(t))}); }, 1500); }
-      if(k === order.length - 1) setTimeout(() => { if(boardState){ boardState.revealing = false; } }, 1800);
-    }, 300 + k * 1100));
-  });
+  boardState.revealing = true; boardState.mode = null; boardRender(false);
+  document.querySelector(".race-ov")?.remove();
+  const ov = document.createElement("div"); ov.className = "race-ov";
+  ov.innerHTML = `<div class="race-stage"></div>`; document.body.appendChild(ov);
+  const finish = () => {
+    ov.style.transition = "opacity .6s"; ov.style.opacity = 0;
+    setTimeout(() => { ov.remove(); if(!boardState) return; boardState.revealing = false; boardState.shown.forEach((v,k) => boardState.shown.set(k, 0)); boardState.mode = null; boardRender(false); }, 550);
+  };
+  const {ranked, winners} = runRace(ov, {onDone: () => {
+    const top = ranked.filter(r => winners.has(r.t.id)), w = top[0];
+    if(!w){ finish(); return; }
+    const tie = top.length > 1;
+    ov.style.setProperty("--tc", teamColor(w.t, w.i));
+    ov.querySelector(".race-stage").innerHTML = `<div class="win-panel" style="--tc:${esc(teamColor(w.t, w.i))}">
+      <span class="kick">${tie ? "Tied for first" : "Winner"}</span>
+      <div class="wname">${top.map(r => esc(r.t.name)).join(" & ")}</div>
+      <div class="wscore"><b id="ws">0</b><span>POINTS · ${w.sc.judges} JUDGE${w.sc.judges===1?"":"S"}</span></div>
+      ${standingsHTML(ranked)}
+      <div class="race-actions"><button class="btn sm" id="rv-close">Show the leaderboard</button></div></div>`;
+    countUp(ov.querySelector("#ws"), 0, w.sc.sum, 1400);
+    ov.querySelector("#rv-close").addEventListener("click", finish);
+    const auto = setTimeout(finish, 15000); ov.querySelector("#rv-close").addEventListener("click", () => clearTimeout(auto));
+  }});
 }
 function teamReveal(){
-  if(document.querySelector(".reveal-ov")) return;
+  if(document.querySelector(".race-ov")) return;
   const ts = teams(), idx = ts.findIndex(t => t.id === S.session.teamId); if(idx < 0) return;
-  const t = ts[idx], color = teamColor(t, idx), rank = finalRanking().findIndex(r => r.t.id === t.id) + 1, total = teamScore(t).sum;
+  const t = ts[idx], color = teamColor(t, idx);
   store.set("revealSeen:" + S.code, true);
-  const ov = document.createElement("div"); ov.className = "reveal-ov"; ov.style.setProperty("--tc", color);
-  ov.innerHTML = `<div class="inner"><p class="kick">The results are in</p><div class="count" id="rc">3</div></div>`;
-  document.body.appendChild(ov);
-  const show = () => {
-    const avgs = questionAverages(t), max = questions().length*10;
-    ov.querySelector(".inner").innerHTML = `<p class="kick" style="color:${esc(color)}">${esc(t.name)}</p>
-      <div class="rankbig">#${rank}</div><p class="muted" style="margin-top:-6px">of ${ts.length} teams</p>
-      <div class="stack" style="align-items:center;gap:2px"><div class="mono" style="font-size:clamp(32px,6vh,52px);color:var(--brand);font-weight:700" id="rt">0</div><small class="muted">total points from ${teamScore(t).judges} judge${teamScore(t).judges===1?"":"s"} · ${max} max each</small></div>
-      ${qbarsHTML(avgs)}
-      <button class="btn brand" id="rx">See our results</button>`;
-    countUp(ov.querySelector("#rt"), 0, total, 1600);
-    requestAnimationFrame(() => setTimeout(() => ov.querySelectorAll(".qbar .t i").forEach(i => i.style.width = i.dataset.w), 600));
+  const ov = document.createElement("div"); ov.className = "race-ov"; ov.style.setProperty("--tc", color);
+  ov.innerHTML = `<div class="race-stage"></div>`; document.body.appendChild(ov);
+  const {ranked, winners} = runRace(ov, {highlightId: t.id, onDone: () => {
+    const rank = ranked.findIndex(r => r.t.id === t.id) + 1, sc = teamScore(t), won = winners.has(t.id);
+    const w = ranked[0], max = questions().length*10;
+    ov.querySelector(".race-stage").innerHTML = `<div class="res-card" style="--tc:${esc(color)}">
+      <span class="eyebrow" style="color:${esc(color)}">${esc(t.name)} · ${won ? (winners.size > 1 ? "tied for first" : "winner") : "final result"}</span>
+      <div class="spread" style="align-items:flex-end"><div class="ord">${ordHTML(rank)}</div><div style="text-align:right"><div class="mono" style="font-size:clamp(28px,5vh,44px);font-weight:700;color:var(--brand)" id="rt">0</div><small class="muted">points · of ${ts.length} teams</small></div></div>
+      ${won ? "" : `<p class="muted" style="font-size:14px">Winner: <b style="color:var(--text)">${esc(w.t.name)}</b> with ${w.sc.sum} points</p>`}
+      <div class="hcard" style="gap:10px"><div class="head"><h3>Score breakdown</h3><span class="state-pill">${sc.judges ? (sc.sum/sc.judges).toFixed(1) : "—"} / ${max} per judge</span></div>
+        <p class="sub" style="font-size:12px">Average across judges for each question</p>${qbarsHTML(questionAverages(t))}</div>
+      <button class="btn brand block" id="rx">Done</button></div>`;
+    countUp(ov.querySelector("#rt"), 0, sc.sum, 1400);
+    setTimeout(() => ov.querySelectorAll(".qbar .t i").forEach(i => i.style.width = i.dataset.w), 350);
     ov.querySelector("#rx").addEventListener("click", () => ov.remove());
-    ov.querySelector("#rx").focus();
-  };
-  if(REDUCED){ show(); return; }
-  let n = 3; const rc = ov.querySelector("#rc");
-  const step = () => { n--; if(n > 0){ rc.textContent = n; rc.style.animation = "none"; void rc.offsetWidth; rc.style.animation = ""; setTimeout(step, 850); } else show(); };
-  setTimeout(step, 1100);
+  }});
 }
 function qbarsHTML(avgs, instant){
   const scored = avgs.filter(a => a.avg !== null);
