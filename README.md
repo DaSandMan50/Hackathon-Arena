@@ -13,7 +13,7 @@ Live hackathon judging, team checklists and an animated projector leaderboard. O
 - **Create** an event: pick a theme, add branding, add teams and objectives, describe what teams are building (the brief), add and judging questions, and choose a host password. You get a 5-character event code.
 - **Join** with the code as a team or the leaderboard screen. No accounts.
 - **Judges** also need the event's private 6-character judge code, shown only in Host tools. Scores are only saved when the judge code checks out.
-- **Host tools** (Join → "Host tools"): event code + host password to edit the event or clear scores.
+- **Host tools**: open from the leaderboard, the role screen, or Join → "Host tools". The host password is asked for every time, kept only while you're inside Host tools in that browser tab, and never saved on the device. Leaving Host tools locks it again, so a shared projector laptop stays safe.
 
 Host passwords are stored hashed in a table the website can't read, and edits are checked inside the database.
 

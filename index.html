@@ -717,7 +717,19 @@ function connectEvent(code){
   S.unsubs.push(() => S.sb.removeChannel(ch), () => clearInterval(poll), () => document.removeEventListener("visibilitychange", vis));
 }
 function disconnect(){ S.unsubs.forEach(u => { try{u()}catch{} }); S.unsubs = []; S.code = null; }
-const hostPw = code => store.get("host:"+code, null);
+/* Host access: unlocked only while someone is inside Host tools in this browser tab.
+   Leaving Host tools locks it again, and the password is never saved on the device. */
+const HOSTKEY = "pha:hostUnlock";
+function hostPw(code){
+  if(S.hostMem && S.hostMem.code === code) return S.hostMem.pw;
+  try{ const v = JSON.parse(sessionStorage.getItem(HOSTKEY) || "null"); if(v && v.code === code){ S.hostMem = v; return v.pw; } }catch{}
+  return null;
+}
+function unlockHost(code, pw){ S.hostMem = {code, pw}; try{ sessionStorage.setItem(HOSTKEY, JSON.stringify(S.hostMem)); }catch{} }
+function lockHost(){ S.hostMem = null; try{ sessionStorage.removeItem(HOSTKEY); }catch{} }
+const inHostArea = () => S.view === "hostLive" || (S.view === "create" && !!S.viewCtx.edit);
+// remove passwords that older versions of the site saved on this device
+try{ Object.keys(localStorage).filter(k => k.startsWith("pha:host:")).forEach(k => localStorage.removeItem(k)); }catch{}
 const judgeCode = code => store.get("judge:"+code, null);
 const DAY = 864e5;
 function expiryOf(row){ if(row.ended_at) return new Date(new Date(row.ended_at).getTime() + 7*DAY); return row.last_activity_at ? new Date(new Date(row.last_activity_at).getTime() + 14*DAY) : null; }
@@ -740,26 +752,21 @@ function modal({title, body, actions, warn}){
   const esc_ = e => { if(e.key === "Escape"){ el.remove(); removeEventListener("keydown", esc_); } }; addEventListener("keydown", esc_);
   (el.querySelector("input") || el.querySelector("button"))?.focus();
 }
-/* open Host tools for the current event: straight in if this device knows the password, otherwise ask */
+/* open Host tools for the current event: always asks for the host password */
 async function openHostTools(errMsg){
   const code = S.code; if(!code) return;
-  const pw = hostPw(code);
-  if(pw && !errMsg){
-    try{ if(must(await S.sb.rpc("verify_host", {p_code: code, p_password: pw}))){ rememberHosted(code, S.event && S.event.name); saveSession({role:"host"}); go("hostLive"); return; } }catch{}
-    store.del("host:"+code);
-  }
   modal({title:"Host tools", body:`<p>Enter the host password for <b style="color:var(--text)">${esc((S.event && S.event.name) || code)}</b> (${esc(code)}).</p>${errMsg?`<p class="err">${esc(errMsg)}</p>`:""}
       <div><label class="lbl" for="hpwq">Host password</label><input type="password" id="hpwq" autocomplete="current-password"></div>`,
     actions:[{label:"Cancel"}, {label:"Open host tools", primary:true, run: async v => {
       const p = (v.hpwq || "").trim(); if(!p) return openHostTools("Enter your host password.");
       try{
         if(!must(await S.sb.rpc("verify_host", {p_code: code, p_password: p}))) return openHostTools("That password doesn't match this event.");
-        store.set("host:"+code, p); rememberHosted(code, S.event && S.event.name); saveSession({role:"host"}); go("hostLive");
+        unlockHost(code, p); rememberHosted(code, S.event && S.event.name); saveSession({role:"host"}); go("hostLive");
       }catch{ openHostTools("Couldn't reach the database. Check your connection and try again."); }
     }}]});
 }
 async function keepEvent(code){
-  const pw = hostPw(code); if(!pw){ toast("Sign in to Host tools with your code and password to keep this event."); return false; }
+  const pw = hostPw(code); if(!pw){ toast("Open Host tools for this event with your code and host password, then tap Keep event."); return false; }
   try{ const ok = must(await S.sb.rpc("keep_event", {p_code: code, p_password: pw})); if(!ok){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return false; } toast("Kept. The countdown starts over."); if(S.code === code) loadEvent(code).catch(()=>{}); return true; }
   catch(e){ console.warn(e); toast("Couldn't reach the database. Try again.", {color:"#FF6B7A"}); return false; }
 }
@@ -772,7 +779,7 @@ async function checkHosted(){
   const found = new Map(rows.map(r => [r.code, r]));
   const gone = list.filter(h => !found.has(h.code));
   if(gone.length){
-    gone.forEach(h => { forgetHosted(h.code); store.del("host:"+h.code); store.del("judge:"+h.code); });
+    gone.forEach(h => { forgetHosted(h.code); store.del("judge:"+h.code); });
     modal({warn:true, title:`Your event${gone.length>1?"s were":" was"} deleted`,
       body:`<p>${gone.length>1?"These events":"This event"} hit the automatic clean-up limit and ${gone.length>1?"were":"was"} removed automatically, along with all scores and checklists:</p><ul>${gone.map(h => `<li><b style="color:var(--text)">${esc(h.name || "Untitled event")}</b> · ${esc(h.code)}</li>`).join("")}</ul><p>Events are deleted 7 days after they end, or after 2 weeks with no activity. You can create a new one any time.</p>`,
       actions:[{label:"Got it", primary:true}]});
@@ -843,6 +850,9 @@ function route(){
 }
 function render(){
   clearLand();
+  if(S.view === "hostLive" && !hostPw(S.code)){ saveSession({role:null}); S.view = "roles"; S.viewCtx = {}; setTimeout(() => openHostTools(), 50); }
+  if(S.view === "create" && S.viewCtx.edit && !hostPw(S.code)){ S.view = "roles"; S.viewCtx = {}; setTimeout(() => openHostTools(), 50); }
+  if(!inHostArea()) lockHost();
   if(S.view !== "board") stopBoard();
   if(["home","join","hostLogin","nodb"].includes(S.view)) applyPreviewSkin();
   else if(S.view !== "create" && S.event) applyEventSkin();
@@ -1139,7 +1149,7 @@ V.create = () => {
       } else {
         const res = must(await S.sb.rpc("create_event2", {p_data: clean, p_password: draft.hostPw}));
         const code = res.code;
-        store.set("host:"+code, draft.hostPw); S.judgeCodeFor = {code, value: res.judge_code}; rememberHosted(code, clean.name);
+        unlockHost(code, draft.hostPw); S.judgeCodeFor = {code, value: res.judge_code}; rememberHosted(code, clean.name);
         saveSession({code, role:"host"}); connectEvent(code);
         burst(innerWidth/2, innerHeight/3, 180);
         go("hostLive", {fresh:true});
@@ -1166,7 +1176,7 @@ V.hostLogin = () => {
     er.textContent = "Checking…";
     try{ const ok = must(await S.sb.rpc("verify_host", {p_code: code, p_password: pw})); if(!ok){ er.textContent = "That code and password don't match."; return; } }
     catch{ er.textContent = "Couldn't reach the event. Try again."; return; }
-    store.set("host:"+code, pw);
+    unlockHost(code, pw);
     try{ const ev = must(await S.sb.from("events").select("data").eq("code", code).maybeSingle()); rememberHosted(code, ev && ev.data && ev.data.name); }catch{ rememberHosted(code, ""); }
     saveSession({code, role:"host"}); connectEvent(code); go("hostLive");
   }, "submit");
@@ -1275,7 +1285,7 @@ V.hostLive = () => {
     actions:[{label:"Keep running"}, {label:"End event", danger:true, run: async () => { if(await hostCall("end_event", "Event ended. Final results are on the leaderboard.")){ S.ended = true; render(); } }}]}));
   on("#reopen", async () => { if(await hostCall("reopen_event", "Event reopened. Judging and checklists are live again.")){ S.ended = false; render(); } });
   on("#del", () => modal({warn:true, title:"Delete this event?", body:`<p>Permanently delete <b style="color:var(--text)">${esc(S.code)}</b> with all its scores and progress? This can't be undone.</p>`,
-    actions:[{label:"Cancel"}, {label:"Delete forever", danger:true, run: async () => { const code = S.code; if(await hostCall("delete_event", "Event deleted")){ store.del("host:"+code); forgetHosted(code); leave(); go("home"); } }}]}));
+    actions:[{label:"Cancel"}, {label:"Delete forever", danger:true, run: async () => { const code = S.code; if(await hostCall("delete_event", "Event deleted")){ lockHost(); forgetHosted(code); leave(); go("home"); } }}]}));
   on("#exit", () => { saveSession({role:null}); go("roles"); });
 };
 
