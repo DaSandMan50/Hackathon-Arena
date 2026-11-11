@@ -387,38 +387,25 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .ritem .segs{grid-column:2 / -1;height:10px}
 .ritem.me{border-color:color-mix(in srgb,var(--tc) 55%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 10%,var(--panel)),var(--panel) 70%)}
 .ritem.me .rk{color:var(--tc)}
-/* Brief strip on the leaderboard */
-.lb-mid{flex:none;display:flex;gap:clamp(10px,1.6vw,20px);align-items:stretch;flex-wrap:wrap}
+/* Brief line on the leaderboard */
+.lb-mid{flex:none;display:flex;gap:clamp(12px,2vw,28px);align-items:center;flex-wrap:wrap}
 .lb-mid .joinbox{flex:none}
-#brief{flex:1 1 520px;min-width:0;display:flex}
+.lb-mid .stats{margin-left:auto}
 #brief:empty{display:none}
-#brief .brief{flex:1;min-width:0}
-.brief{display:grid;grid-template-columns:minmax(140px,auto) minmax(0,1fr);align-items:center;gap:clamp(12px,2.4vw,32px);padding:clamp(10px,1.6vh,16px) clamp(14px,1.8vw,22px);border-radius:var(--r);border:1px solid var(--line-2);background:color-mix(in srgb,var(--panel) 82%,transparent)}
-.brief-lbl{display:flex;flex-direction:column;gap:4px;min-width:0}
-.brief-lbl span{font-family:var(--f-mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
-.brief-lbl b{font-family:var(--f-display);font-weight:700;font-size:calc(clamp(14px,min(1.5vw,2.2vh),20px) * var(--dscale));color:var(--text);line-height:1.2}
-.brief-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));min-width:0}
-.bi{display:flex;flex-direction:column;gap:3px;min-width:0;padding:2px clamp(12px,1.6vw,22px)}
-.bi + .bi{border-left:1px solid var(--line-2)}
-.bi b{font-family:var(--f-display);font-weight:700;font-size:calc(clamp(15px,min(1.7vw,2.5vh),24px) * var(--dscale));color:var(--text);line-height:1.15;letter-spacing:-.01em}
-.bi .who{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px}
-.bi .who span{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:clamp(10px,1.3vh,12px);color:var(--tc);-webkit-line-clamp:unset}
-.bi .who i{width:7px;height:7px;border-radius:2px;background:var(--tc)}
-.bi .who em{font-style:normal;font-family:var(--f-mono);font-size:clamp(10px,1.3vh,12px);letter-spacing:.08em;color:var(--muted)}
+.brief{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:clamp(2px,.6vh,8px);font-size:clamp(12px,min(1.05vw,1.6vh),15px);line-height:1.2}
+.brief .lab{font-family:var(--f-mono);font-size:.78em;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.brief .dl{display:inline-flex;align-items:center;gap:7px;padding:.32em .8em;border-radius:99px;border:1px solid var(--line-2);background:color-mix(in srgb,var(--panel) 65%,transparent);color:var(--text);font-weight:600;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.brief .who{display:inline-flex;gap:3px}
+.brief .who i{width:.55em;height:.55em;border-radius:2px;background:var(--tc)}
+.brief .bf{color:var(--muted)}
 .tchips{display:flex;flex-wrap:wrap;gap:6px}
 .tchip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line-2);background:var(--field);color:var(--muted);font-weight:600;font-size:13px}
 .tchip i{width:8px;height:8px;border-radius:2px;background:var(--tc)}
 .tchip.on{color:var(--text);border-color:var(--tc,var(--brand));background:color-mix(in srgb,var(--tc,var(--brand)) 14%,var(--field))}
 .building{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bi > span{font-size:clamp(12px,min(1.1vw,1.7vh),15px);color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-@media (max-width:900px){.brief{grid-template-columns:1fr;gap:8px}.brief-lbl{flex-direction:row;align-items:baseline;gap:8px;flex-wrap:wrap}}
 @media (max-width:640px){
-  #brief{flex-basis:100%}
-  .brief{padding:10px 12px;gap:6px}
-  .brief-items{grid-template-columns:1fr 1fr}
-  .bi{padding:0 10px}.bi:first-child{padding-left:0}
-  .bi b{font-size:calc(14px * var(--dscale))}
-  .bi > span{display:none}
+  .brief{font-size:11px;gap:4px 6px}
+  .brief .bf{display:none}
   body[data-view=board] .stats{display:none}
 }
 /* Loading state on buttons */
@@ -1557,14 +1544,13 @@ V.board = () => {
   const org = orgName();
   $app.innerHTML = `<div class="lb">
     <div class="lb-top"><div class="lb-id"><span class="mark">${esc(initials(org || S.event.name))}</span><div class="stack" style="gap:6px;min-width:0">
-      <span class="live" id="lbstatus">${S.ended?"FINAL RESULTS":"LIVE"}${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1></div></div>
+      <span class="live" id="lbstatus">${S.ended?"FINAL RESULTS":"LIVE"}${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1><div id="brief">${briefHTML()}</div></div></div>
       <div class="lb-timer">${timerHTML("big")}</div>
     </div>
     <div class="lb-mid">
 <div class="joinbox">${qrSVG(joinURL(S.code)) ? `<div class="qr" aria-label="QR code to join this event">${qrSVG(joinURL(S.code))}</div>` : ""}<div><p class="eyebrow" style="color:var(--muted);margin-bottom:6px">Scan or enter code</p><div class="mono">${esc(S.code)}</div><div class="joinurl">${esc(siteURL().replace(/^https?:\/\//,""))}</div></div></div>
-      <div id="brief">${briefHTML()}</div>
+      <div class="stats" id="stats"></div>
     </div>
-    <div class="stats" id="stats"></div>
     <div id="stage" style="flex:1;display:flex;flex-direction:column"></div>
     <div class="lb-tools"><button class="btn sm ghost" id="ex">← Exit leaderboard</button><button class="btn sm ghost" id="ht">Host tools</button><button class="btn sm" id="fs">Fullscreen</button></div></div>`;
   on("#ht", () => openHostTools());
@@ -1819,10 +1805,11 @@ function briefHTML(){
   const bf = S.event && S.event.buildingFor;
   if(!dl.length && !bf) return "";
   const anySpecific = dl.some(d => deliverableTeams(d).length < teams().length);
-  return `<section class="brief" aria-label="What teams are building">
-    <div class="brief-lbl"><span>Teams are building</span>${bf ? `<b>for ${esc(bf)}</b>` : ""}</div>
-    ${dl.length ? `<div class="brief-items">${dl.map(d => `<div class="bi"><b>${esc(d.name)}</b>${d.desc ? `<span>${esc(d.desc)}</span>` : ""}${anySpecific ? `<div class="who">${whoHTML(d)}</div>` : ""}</div>`).join("")}</div>` : ""}
-  </section>`;
+  return `<div class="brief" aria-label="What teams are building"><span class="lab">Building</span>${dl.map(d => {
+      const who = anySpecific ? deliverableTeams(d) : [];
+      const dots = who.length && who.length < teams().length ? `<span class="who">${who.map(t => `<i style="--tc:${esc(teamColor(t, teams().indexOf(t)))}" title="${esc(t.name)}"></i>`).join("")}</span>` : "";
+      return `<span class="dl" ${d.desc ? `title="${esc(d.desc)}"` : ""}>${esc(d.name)}${dots}</span>`;
+    }).join("")}${bf ? `<span class="bf">for ${esc(bf)}</span>` : ""}</div>`;
 }
 
 /* ---------- score reveal ---------- */
