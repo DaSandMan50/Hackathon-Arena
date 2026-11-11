@@ -375,6 +375,31 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .ritem .segs{grid-column:2 / -1;height:10px}
 .ritem.me{border-color:color-mix(in srgb,var(--tc) 55%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 10%,var(--panel)),var(--panel) 70%)}
 .ritem.me .rk{color:var(--tc)}
+/* Brief strip on the leaderboard */
+.lb-mid{flex:none;display:flex;gap:clamp(10px,1.6vw,20px);align-items:stretch;flex-wrap:wrap}
+.lb-mid .joinbox{flex:none}
+#brief{flex:1 1 520px;min-width:0;display:flex}
+#brief:empty{display:none}
+#brief .brief{flex:1;min-width:0}
+.brief{display:grid;grid-template-columns:minmax(140px,auto) minmax(0,1fr);align-items:center;gap:clamp(12px,2.4vw,32px);padding:clamp(10px,1.6vh,16px) clamp(14px,1.8vw,22px);border-radius:var(--r);border:1px solid var(--line-2);background:color-mix(in srgb,var(--panel) 82%,transparent)}
+.brief-lbl{display:flex;flex-direction:column;gap:4px;min-width:0}
+.brief-lbl span{font-family:var(--f-mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--brand)}
+.brief-lbl b{font-family:var(--f-display);font-weight:700;font-size:calc(clamp(14px,min(1.5vw,2.2vh),20px) * var(--dscale));color:var(--text);line-height:1.2}
+.brief-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));min-width:0}
+.bi{display:flex;flex-direction:column;gap:3px;min-width:0;padding:2px clamp(12px,1.6vw,22px)}
+.bi + .bi{border-left:1px solid var(--line-2)}
+.bi b{font-family:var(--f-display);font-weight:700;font-size:calc(clamp(15px,min(1.7vw,2.5vh),24px) * var(--dscale));color:var(--text);line-height:1.15;letter-spacing:-.01em}
+.bi span{font-size:clamp(12px,min(1.1vw,1.7vh),15px);color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-width:900px){.brief{grid-template-columns:1fr;gap:8px}.brief-lbl{flex-direction:row;align-items:baseline;gap:8px;flex-wrap:wrap}}
+@media (max-width:640px){
+  #brief{flex-basis:100%}
+  .brief{padding:10px 12px;gap:6px}
+  .brief-items{grid-template-columns:1fr 1fr}
+  .bi{padding:0 10px}.bi:first-child{padding-left:0}
+  .bi b{font-size:calc(14px * var(--dscale))}
+  .bi span{display:none}
+  body[data-view=board] .stats{display:none}
+}
 /* Modal */
 .modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
 .modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
@@ -974,9 +999,10 @@ function blankTeam(i){ return {id: rid(6), name: `Team ${i+1}`, color: TEAM_COLO
 V.create = () => {
   const editing = !!S.viewCtx.edit;
   const draft = S.viewCtx.draft || (editing && S.event
-    ? JSON.parse(JSON.stringify({theme:S.event.theme||"arena", orgName:S.event.orgName||"", brandColor:S.event.brandColor||DEFAULT_BRAND, name:S.event.name, teams:S.event.teams, questions:S.event.questions}))
-    : {theme: store.get("vibe","arena"), orgName:"", brandColor: THEMES[store.get("vibe","arena")]?.accent || DEFAULT_BRAND, name:"AI Hackathon", teams:[blankTeam(0), blankTeam(1)], questions: DEFAULT_QUESTIONS.map(t => ({id:rid(6), text:t}))});
+    ? JSON.parse(JSON.stringify({theme:S.event.theme||"arena", orgName:S.event.orgName||"", brandColor:S.event.brandColor||DEFAULT_BRAND, name:S.event.name, buildingFor:S.event.buildingFor||"", deliverables:S.event.deliverables||[], teams:S.event.teams, questions:S.event.questions}))
+    : {theme: store.get("vibe","arena"), orgName:"", brandColor: THEMES[store.get("vibe","arena")]?.accent || DEFAULT_BRAND, name:"AI Hackathon", buildingFor:"", deliverables:[{id:rid(6), name:"", desc:""}], teams:[blankTeam(0), blankTeam(1)], questions: DEFAULT_QUESTIONS.map(t => ({id:rid(6), text:t}))});
   S.viewCtx.draft = draft;
+  if(!Array.isArray(draft.deliverables)) draft.deliverables = [];
   if(!THEMES[draft.theme]) draft.theme = "arena";
   applySkin(draft.theme); applyBrand(draft.brandColor);
   const presets = [THEMES[draft.theme].accent, ...BRAND_PRESETS.filter(c => c.toLowerCase() !== THEMES[draft.theme].accent.toLowerCase())].slice(0,8);
@@ -997,8 +1023,15 @@ V.create = () => {
       <input type="text" id="q-${esc(q.id)}" class="qtxt" data-i="${i}" value="${esc(q.text)}" aria-label="Question ${i+1}">
       <button class="x rm-q" data-i="${i}" aria-label="Remove question" type="button">×</button></div>`).join("");
   const isPreset = presets.some(c => c.toLowerCase() === draft.brandColor.toLowerCase());
-  const STEPS = ["Theme","Branding","Teams","Questions"];
-  const step = S.viewCtx.step = Math.min(3, Math.max(0, S.viewCtx.step || 0));
+  const STEPS = ["Theme","Branding","Brief","Teams","Questions"];
+  const LAST = STEPS.length - 1;
+  const step = S.viewCtx.step = Math.min(LAST, Math.max(0, S.viewCtx.step || 0));
+  const dlHTML = draft.deliverables.map((d,i) => `
+    <div class="team-card">
+      <div class="row" style="flex-wrap:nowrap"><span class="eyebrow" style="flex:1;color:var(--muted)">Deliverable</span><button class="x rm-dl" data-i="${i}" aria-label="Remove deliverable" type="button">×</button></div>
+      <div><label class="lbl" for="dn-${esc(d.id)}">What it is</label><input type="text" id="dn-${esc(d.id)}" class="dname" data-i="${i}" maxlength="48" value="${esc(d.name)}" placeholder="e.g. AI chatbot"></div>
+      <div><label class="lbl" for="dd-${esc(d.id)}">One-line description</label><input type="text" id="dd-${esc(d.id)}" class="ddesc" data-i="${i}" maxlength="110" value="${esc(d.desc)}" placeholder="e.g. Answers student FAQs with a welcoming local voice"></div>
+    </div>`).join("");
   const panes = [
     `<p class="muted" style="font-size:13px;flex:none">Sets the fonts, colours and animated background on every screen, including the projector.</p><div class="fill"><div class="themes">${themeHTML}</div></div>`,
     `<div class="fill"><div class="panel stack">
@@ -1008,6 +1041,9 @@ V.create = () => {
       <div><label class="lbl">Brand colour</label><div class="colors">${presets.map(c => `<button type="button" class="bc ${c.toLowerCase()===draft.brandColor.toLowerCase()?"sel":""}" data-c="${c}" style="background:${c}" aria-label="Brand colour ${c}"></button>`).join("")}
         <input type="color" id="custom" value="${esc(draft.brandColor)}" aria-label="Custom brand colour" title="Custom colour" ${isPreset?"":'style="outline:2px solid var(--text)"'}></div></div>
       <div class="preview-bar"><span class="mark" id="pvm">${esc(initials(draft.orgName || draft.name))}</span><span style="min-width:0"><b id="pvo" style="font-family:var(--f-display)">${esc(draft.orgName || "Your organization")}</b><small class="muted" style="display:block" id="pve">${esc(draft.name)}</small></span></div></div></div>`,
+    `<p class="muted" style="font-size:13px;flex:none">Shown at the top of the leaderboard so anyone in the room can see what teams are building. Optional, up to 4.</p>
+      <div class="fill"><div class="panel stack"><div><label class="lbl" for="bfor">Building for (optional)</label><input type="text" id="bfor" maxlength="60" value="${esc(draft.buildingFor||"")}" placeholder="e.g. Walter Dods Jr. RISE Center"></div></div>
+        ${dlHTML}${draft.deliverables.length < 4 ? `<button class="btn ghost block" id="addD" type="button">+ Add deliverable</button>` : ""}</div>`,
     `<div class="spread" style="flex:none"><p class="muted" style="font-size:13px">Each team gets its own objectives checklist.</p><span class="chip">${draft.teams.length} team${draft.teams.length===1?"":"s"}</span></div>
       <div class="fill">${teamHTML}<button class="btn ghost block" id="addT" type="button">+ Add team</button></div>`,
     `<div class="spread" style="flex:none"><p class="muted" style="font-size:13px">Placeholders for now. Swap in your real questions any time.</p><span class="chip">max ${draft.questions.length*10} per judge</span></div>
@@ -1016,16 +1052,19 @@ V.create = () => {
   $app.innerHTML = `<div class="wrap">
     <div class="spread" style="flex:none;padding-top:14px"><button class="back" id="bk">← ${editing?"Host tools":"Home"}</button><span class="eyebrow">${editing?`Editing ${esc(S.code)}`:"Create an event"}</span></div>
     <div class="steps" style="flex:none">${STEPS.map((n,i) => `<button type="button" class="${i===step?"on":i<step?"past":""}" data-s="${i}"><i></i>${i+1}. ${n}</button>`).join("")}</div>
-    <h2 style="flex:none">${["Pick a theme","Add your branding","Teams & objectives","Judging questions"][step]}</h2>
+    <h2 style="flex:none">${["Pick a theme","Add your branding","What teams are building","Teams & objectives","Judging questions"][step]}</h2>
     ${panes[step]}
     <p class="err" id="er" style="flex:none"></p>
     <div class="row" style="flex:none;flex-wrap:nowrap">${step>0?`<button class="btn" id="prevS" style="flex:1">Back</button>`:""}
-      ${step<3?`<button class="btn brand" id="nextS" style="flex:2">Next: ${STEPS[step+1]}</button>`:`<button class="btn brand" id="go" style="flex:2">${editing?"Save changes":"Create event & get code"}</button>`}
-      ${editing && step<3?`<button class="btn" id="go" style="flex:1">Save</button>`:""}</div></div>`;
+      ${step<LAST?`<button class="btn brand" id="nextS" style="flex:2">Next: ${STEPS[step+1]}</button>`:`<button class="btn brand" id="go" style="flex:2">${editing?"Save changes":"Create event & get code"}</button>`}
+      ${editing && step<LAST?`<button class="btn" id="go" style="flex:1">Save</button>`:""}</div></div>`;
   const sync = () => {
     const org = $app.querySelector("#org"), en = $app.querySelector("#ename");
     if(org) draft.orgName = org.value; if(en) draft.name = en.value;
     const hp = $app.querySelector("#hpw"); if(hp) draft.hostPw = hp.value;
+    const bf = $app.querySelector("#bfor"); if(bf) draft.buildingFor = bf.value;
+    $app.querySelectorAll(".dname").forEach(el => draft.deliverables[+el.dataset.i].name = el.value);
+    $app.querySelectorAll(".ddesc").forEach(el => draft.deliverables[+el.dataset.i].desc = el.value);
     $app.querySelectorAll(".tname").forEach(el => draft.teams[+el.dataset.i].name = el.value);
     $app.querySelectorAll(".tobj").forEach(el => {
       const t = draft.teams[+el.dataset.i], old = t.objectives || [], used = new Set();
@@ -1047,6 +1086,8 @@ V.create = () => {
   onAll(".bc", el => { sync(); draft.brandColor = el.dataset.c; V.create(); });
   on("#custom", e => { sync(); draft.brandColor = e.target.value; V.create(); }, "change");
   on("#bk", () => { if(editing) go("hostLive"); else go("home"); });
+  on("#addD", () => { sync(); draft.deliverables.push({id:rid(6), name:"", desc:""}); V.create(); const all = $app.querySelectorAll(".dname"); all[all.length-1]?.focus(); });
+  onAll(".rm-dl", el => { sync(); draft.deliverables.splice(+el.dataset.i,1); V.create(); });
   on("#addT", () => { sync(); draft.teams.push(blankTeam(draft.teams.length)); V.create(); });
   on("#addQ", () => { sync(); draft.questions.push({id:rid(6), text:""}); V.create(); const all = $app.querySelectorAll(".qtxt"); all[all.length-1]?.focus(); });
   onAll(".rm-team", el => { sync(); draft.teams.splice(+el.dataset.i,1); V.create(); });
@@ -1057,12 +1098,14 @@ V.create = () => {
     const clean = {
       theme: draft.theme, orgName: draft.orgName.trim(), brandColor: isHex(draft.brandColor) ? draft.brandColor : DEFAULT_BRAND,
       name: draft.name.trim() || "AI Hackathon",
+      buildingFor: (draft.buildingFor||"").trim(),
+      deliverables: draft.deliverables.filter(d => (d.name||"").trim()).slice(0,4).map(d => ({id:d.id, name:d.name.trim(), desc:(d.desc||"").trim()})),
       teams: draft.teams.map((t,i) => ({id:t.id, name:(t.name||"").trim() || `Team ${i+1}`, color:teamColor(t,i), objectives:t.objectives || []})),
       questions: draft.questions.filter(q => q.text.trim()).map(q => ({id:q.id, text:q.text.trim()}))
     };
     if(!editing && (draft.hostPw||"").length < 4){ S.viewCtx.step = 1; V.create(); $app.querySelector("#er").textContent = "Choose a host password of at least 4 characters."; return; }
-    if(!clean.teams.length){ S.viewCtx.step = 2; V.create(); $app.querySelector("#er").textContent = "Add at least one team."; return; }
-    if(!clean.questions.length){ S.viewCtx.step = 3; V.create(); $app.querySelector("#er").textContent = "Add at least one judging question."; return; }
+    if(!clean.teams.length){ S.viewCtx.step = 3; V.create(); $app.querySelector("#er").textContent = "Add at least one team."; return; }
+    if(!clean.questions.length){ S.viewCtx.step = 4; V.create(); $app.querySelector("#er").textContent = "Add at least one judging question."; return; }
     const btn = $app.querySelector("#go"); btn.disabled = true; er.textContent = "";
     try{
       if(editing){
@@ -1453,7 +1496,11 @@ V.board = () => {
     <div class="lb-top"><div class="lb-id"><span class="mark">${esc(initials(org || S.event.name))}</span><div class="stack" style="gap:6px;min-width:0">
       <span class="live" id="lbstatus">${S.ended?"FINAL RESULTS":"LIVE"}${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1></div></div>
       <div class="lb-timer">${timerHTML("big")}</div>
-      <div class="joinbox">${qrSVG(joinURL(S.code)) ? `<div class="qr" aria-label="QR code to join this event">${qrSVG(joinURL(S.code))}</div>` : ""}<div><p class="eyebrow" style="color:var(--muted);margin-bottom:6px">Scan or enter code</p><div class="mono">${esc(S.code)}</div><div class="joinurl">${esc(siteURL().replace(/^https?:\/\//,""))}</div></div></div></div>
+    </div>
+    <div class="lb-mid">
+<div class="joinbox">${qrSVG(joinURL(S.code)) ? `<div class="qr" aria-label="QR code to join this event">${qrSVG(joinURL(S.code))}</div>` : ""}<div><p class="eyebrow" style="color:var(--muted);margin-bottom:6px">Scan or enter code</p><div class="mono">${esc(S.code)}</div><div class="joinurl">${esc(siteURL().replace(/^https?:\/\//,""))}</div></div></div>
+      <div id="brief">${briefHTML()}</div>
+    </div>
     <div class="stats" id="stats"></div>
     <div id="stage" style="flex:1;display:flex;flex-direction:column"></div>
     <div class="lb-tools"><button class="btn sm ghost" id="ex">← Exit leaderboard</button><button class="btn sm ghost" id="ht">Host tools</button><button class="btn sm" id="fs">Fullscreen</button></div></div>`;
@@ -1502,7 +1549,7 @@ function boardUpdate(kind, prev, prevCounts){
 function boardRender(first, eventEdit){
   const stage = document.getElementById("stage"); if(!stage || !boardState) return;
   const ts = teams(), n = submittedCount();
-  if(eventEdit){ const h = document.getElementById("lbt"); if(h) h.textContent = S.event.name; }
+  if(eventEdit){ const h = document.getElementById("lbt"); if(h) h.textContent = S.event.name; const br = document.getElementById("brief"); if(br) br.innerHTML = briefHTML(); }
   const objTotal = ts.reduce((a,t) => a + (t.objectives||[]).length, 0), objDone = ts.reduce((a,t) => a + doneSet(t).size, 0);
   const st = document.getElementById("stats");
   if(st) st.innerHTML = `<div><b>${ts.length}</b><small>teams</small></div><div><b>${objDone}<span class="muted" style="font-size:.6em">/${objTotal}</span></b><small>objectives done</small></div><div><b>${ts.filter(t => teamProgress(t).finished).length}</b><small>builds submitted</small></div><div><b>${n}</b><small>scorecards in</small></div>`;
@@ -1682,6 +1729,17 @@ function timerModal(){
         ? {label:"Resume", primary:true, run: () => setTimer({...t, status:"running", endsAt: new Date(nowMs() + t.remainingMs).toISOString()})}
         : {label:"Pause", primary:true, run: () => setTimer({...t, status:"paused", remainingMs: Math.max(0, new Date(t.endsAt).getTime() - nowMs())})}
     ]});
+}
+
+/* ---------- what teams are building ---------- */
+function briefHTML(){
+  const dl = (S.event && Array.isArray(S.event.deliverables)) ? S.event.deliverables.filter(d => d && d.name) : [];
+  const bf = S.event && S.event.buildingFor;
+  if(!dl.length && !bf) return "";
+  return `<section class="brief" aria-label="What teams are building">
+    <div class="brief-lbl"><span>Teams are building</span>${bf ? `<b>for ${esc(bf)}</b>` : ""}</div>
+    ${dl.length ? `<div class="brief-items">${dl.map(d => `<div class="bi"><b>${esc(d.name)}</b>${d.desc ? `<span>${esc(d.desc)}</span>` : ""}</div>`).join("")}</div>` : ""}
+  </section>`;
 }
 
 /* ---------- score reveal ---------- */
