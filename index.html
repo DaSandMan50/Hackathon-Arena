@@ -414,6 +414,120 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .btn[aria-busy="true"]{opacity:1;pointer-events:none;cursor:progress}
 @media (prefers-reduced-motion:reduce){.spin{animation:spin 1.4s linear infinite!important}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Leaderboard style picker */
+.stylepick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sp{display:flex;gap:12px;align-items:center;text-align:left;padding:12px;border-radius:calc(var(--r) * .8);border:2px solid var(--line-2);background:var(--field);transition:border-color .2s,transform .2s var(--ease)}
+.sp:hover{transform:translateY(-2px)}
+.sp.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--field))}
+.sp b{display:block;font-size:15px}.sp small{display:block;font-size:12px;color:var(--muted);line-height:1.35;margin-top:2px}
+.sp-art{flex:none;width:58px;height:46px;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:6px;border-radius:6px;background:var(--panel-2)}
+.sp-art i{display:block;height:7px;border-radius:3px;background:var(--line-2)}
+.sp-art.classic i:nth-child(1){width:90%}.sp-art.classic i:nth-child(2){width:70%}.sp-art.classic i:nth-child(3){width:50%}
+.sp-art.game i{height:8px;border-radius:0;transform:skewX(-20deg);background:linear-gradient(90deg,var(--brand) var(--w),var(--line-2) var(--w))}
+.sp-art.game i:nth-child(1){--w:85%}.sp-art.game i:nth-child(2){--w:60%}.sp-art.game i:nth-child(3){--w:35%}
+@media (max-width:480px){.stylepick{grid-template-columns:1fr}}
+/* ---------- Gamified leaderboard ---------- */
+.lb.game .joinbox,.lb.game .lb-timer .tmr{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));border-radius:0}
+.lb.game .stats{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.lb.game .stats > div{flex-direction:row;align-items:center;gap:10px;padding:8px 14px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 60%,transparent)}
+.lb.game .stats > div small{margin:0}
+.lb.game .stats .ghid{border-color:rgba(var(--brand-rgb),.4)}
+.ghid svg{width:16px;height:16px;color:var(--brand)}
+.ghid small{color:var(--brand)!important}
+.gticker{display:none}
+.garena{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) clamp(250px,22vw,360px);gap:clamp(12px,1.4vw,20px)}
+.glanes{position:relative;min-height:0;display:flex;flex-direction:column;gap:clamp(6px,1.1vh,12px)}
+.glane{--tc:#fff;position:relative;flex:1 1 0;min-height:58px;max-height:150px;display:grid;grid-template-columns:clamp(52px,5.6vw,84px) minmax(0,1.05fr) minmax(0,1.6fr) clamp(118px,11vw,170px);align-items:center;gap:clamp(12px,1.6vw,26px);padding:0 clamp(14px,1.6vw,24px) 0 0;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 11%,var(--panel)) 0%,var(--panel) 42%);border:1px solid var(--line);overflow:hidden;will-change:transform;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px))}
+.glane::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc);box-shadow:0 0 calc(18px * var(--glow)) var(--tc)}
+.glane.winner{border-color:rgba(var(--brand-rgb),.7);background:linear-gradient(90deg,rgba(var(--brand-rgb),.16),var(--panel) 50%)}
+.gsweep{position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--tc) 30%,transparent) 50%,transparent 70%);transform:translateX(-100%);animation:sweep 1.1s var(--ease) forwards}
+.glane.hit{border-color:color-mix(in srgb,var(--tc) 55%,transparent);animation:ghit 1.6s ease-out}
+@keyframes ghit{0%{box-shadow:inset 0 0 0 1px var(--tc),inset 0 0 60px -10px var(--tc)}100%{box-shadow:none}}
+.grank{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.025);border-right:1px solid var(--line)}
+.grank b{font-family:var(--f-display);font-weight:800;font-size:calc(clamp(20px,min(3vw,5vh),44px) * var(--dscale));line-height:1}
+.glane.winner .grank b{color:var(--brand)}
+.gdelta{height:14px;font-family:var(--f-mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:2px}
+.gdelta.up{color:var(--good)}.gdelta.down{color:var(--bad)}
+.gdelta svg{width:10px;height:10px}
+.gwho{min-width:0;display:flex;flex-direction:column;gap:6px}
+.gnm{font-family:var(--f-display);font-weight:800;font-size:calc(clamp(16px,min(2vw,3.4vh),32px) * var(--dscale));line-height:1.05;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gsub{position:relative;height:22px;overflow:hidden}
+.gsub > *{position:absolute;inset:0;display:flex;align-items:center;gap:8px;transition:transform .45s var(--ease),opacity .45s}
+.gev{transform:translateY(100%);opacity:0;font-family:var(--f-mono);font-size:12px;letter-spacing:.04em;color:var(--tc);white-space:nowrap}
+.gev b{color:var(--text);font-family:var(--f-body);font-weight:700;letter-spacing:0;overflow:hidden;text-overflow:ellipsis}
+.gsub.on .gbase{transform:translateY(-100%);opacity:0}
+.gsub.on .gev{transform:none;opacity:1}
+.gtag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;padding:3px 8px;border:1px solid color-mix(in srgb,var(--tc) 45%,transparent);color:var(--tc);white-space:nowrap;transform:skewX(-12deg)}
+.gtag > span{display:inline-block;transform:skewX(12deg)}
+.gtag.streak{border-color:transparent;color:#120A02;background:linear-gradient(90deg,#FFB020,#FF6B3D);font-weight:700;animation:gtagIn .5s var(--spring)}
+.gtag.done,.gtag.win{border-color:transparent;color:var(--on-brand);background:var(--brand);font-weight:700}
+@keyframes gtagIn{from{transform:skewX(-12deg) scale(.4);opacity:0}}
+.gpower{position:relative;min-width:0;display:flex;flex-direction:column;gap:8px}
+.gsegs{position:relative;display:flex;gap:clamp(3px,.4vw,6px);height:clamp(12px,2.2vh,20px);padding-left:4px}
+.gsegs i{position:relative;flex:1;background:var(--track);transform:skewX(-20deg);transition:background .3s}
+.gsegs i.on{background:var(--tc);box-shadow:0 0 calc(12px * var(--glow)) -2px var(--tc)}
+.gsegs i.ignite{animation:gignite .9s var(--spring)}
+@keyframes gignite{0%{background:#fff;transform:skewX(-20deg) scaleY(2.2);box-shadow:0 0 30px 6px var(--tc)}55%{transform:skewX(-20deg) scaleY(.85)}100%{transform:skewX(-20deg)}}
+.gsegs.full i.on{animation:gshimmer 1.4s var(--ease) both;animation-delay:calc(var(--k,0) * 60ms)}
+@keyframes gshimmer{30%{background:#fff;box-shadow:0 0 22px var(--tc)}}
+.gmeta{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.gpct{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+.gcomet{position:absolute;top:50%;left:0;width:60px;height:4px;margin-top:-2px;border-radius:4px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--tc) 70%,#fff);filter:drop-shadow(0 0 8px var(--tc));z-index:2}
+.gripple{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid var(--tc);pointer-events:none;z-index:2;animation:gripple .9s var(--ease) forwards}
+@keyframes gripple{to{transform:scale(7);opacity:0;border-width:1px}}
+.gspark{position:absolute;width:6px;height:2px;border-radius:2px;background:var(--tc);pointer-events:none;z-index:2;box-shadow:0 0 6px var(--tc);animation:gspark .8s var(--ease) forwards}
+@keyframes gspark{from{transform:translate(0,0) rotate(var(--r))}to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.gstamp{position:absolute;right:0;bottom:-4px;font-family:var(--f-mono);font-weight:700;font-size:11px;letter-spacing:.16em;padding:4px 10px;color:#0B0F1C;background:var(--tc);transform:skewX(-12deg);animation:gstamp .7s var(--spring) both;z-index:3}
+@keyframes gstamp{0%{transform:skewX(-12deg) scale(2.2);opacity:0}100%{transform:skewX(-12deg)}}
+.gscore{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.gq{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:800;font-size:calc(clamp(20px,min(2.8vw,4.4vh),44px) * var(--dscale));line-height:1;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.gq.hid{color:var(--dim);letter-spacing:.04em}
+.gq svg{width:.5em;height:.5em;color:var(--muted)}
+.gscore.shake .gq{animation:gshake .5s}
+@keyframes gshake{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+.gpips{display:flex;gap:4px;align-items:center}
+.gpips i{width:12px;height:6px;background:var(--track);transform:skewX(-20deg)}
+.gpips i.on{background:var(--brand)}
+.gpips i.pop{animation:gpip .8s var(--spring)}
+@keyframes gpip{0%{transform:skewX(-20deg) scale(2.6);box-shadow:0 0 16px var(--brand)}}
+.gpips small{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;color:var(--muted);margin-right:6px}
+.gfeed{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);background:color-mix(in srgb,var(--field) 80%,transparent);clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)}
+.gfeed-h{flex:none;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;color:var(--muted)}
+.grate{color:var(--brand);letter-spacing:.08em}
+.gitems{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:8px;gap:6px;mask-image:linear-gradient(#000 75%,transparent)}
+.gempty{margin:6px;font-size:13px;color:var(--dim);line-height:1.45}
+.gitem{--tc:var(--brand);flex:none;display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;background:color-mix(in srgb,var(--panel-2) 80%,transparent);border:1px solid var(--line);animation:gfeedIn .55s var(--spring)}
+.gic{width:30px;height:30px;display:grid;place-items:center;color:var(--tc);background:color-mix(in srgb,var(--tc) 14%,transparent);clip-path:polygon(25% 0,100% 0,75% 100%,0 100%)}
+.gic svg{width:15px;height:15px}
+.gtx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.gtx b{font-size:13px;font-weight:700;color:var(--tc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gtx span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gitem time{font-family:var(--f-mono);font-size:10px;color:var(--dim);align-self:start}
+.gitem.big{border-color:color-mix(in srgb,var(--tc) 50%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--tc) 14%,transparent),color-mix(in srgb,var(--panel-2) 80%,transparent))}
+@keyframes gfeedIn{from{opacity:0;transform:translateX(30px);max-height:0;padding-block:0;margin-top:-6px}to{max-height:80px}}
+.gitem.gone{animation:gfeedOut .4s ease forwards}
+@keyframes gfeedOut{to{opacity:0;transform:translateX(20px)}}
+@media (max-width:1000px){
+  .garena{grid-template-columns:1fr}
+  .gfeed{display:none}
+  .gticker{display:flex;flex:none;gap:6px;overflow:hidden;height:46px;margin-bottom:8px}
+  .gticker .gitem{flex:1 1 0;min-width:0;padding:6px 8px;grid-template-columns:24px minmax(0,1fr)}
+  .gticker .gitem time{display:none}
+  .gticker .gic{width:24px;height:24px}
+  .lb.game .stats{margin-left:0}
+}
+@media (max-width:640px){
+  .glane{grid-template-columns:44px minmax(0,1fr) auto;grid-template-rows:auto auto;row-gap:6px;padding:8px 12px 8px 0;max-height:none;min-height:0}
+  .grank{grid-row:1 / span 2}
+  .gpower{grid-column:2 / -1}
+  .gscore{grid-column:3;grid-row:1}
+  .gq{font-size:18px}
+  .gpips small,.gmeta{display:none}
+  .gticker .gitem:nth-child(n+2){display:none}
+  .gstamp{font-size:9px;padding:3px 7px;bottom:-14px}
+}
 /* Modal */
 .modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
 .modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
@@ -839,9 +953,10 @@ function questionAverages(t){
   return questions().map(q => { const vals = cards.map(c => c.scores[q.id]).filter(v => typeof v === "number"); return {q, avg: vals.length ? vals.reduce((a,v) => a+v, 0)/vals.length : null}; });
 }
 function segsHTML(t, color, popIds){
-  const d = doneSet(t), objs = t.objectives || [];
+  const objs = t.objectives || [], n = doneSet(t).size, m = popIds ? Math.min(popIds.size, n) : 0;
   if(!objs.length) return `<div class="segs empty" style="--tc:${esc(color)}"><i></i></div>`;
-  return `<div class="segs" style="--tc:${esc(color)}">${objs.map(o => `<i class="${d.has(o.id)?"on":""} ${popIds && popIds.has(o.id)?"pop":""}"></i>`).join("")}</div>`;
+  // fill from the left no matter which objectives were ticked; the newest ones are the last filled blocks
+  return `<div class="segs" style="--tc:${esc(color)}">${objs.map((o,k) => `<i class="${k < n ? "on" : ""} ${k >= n - m && k < n ? "pop" : ""}"></i>`).join("")}</div>`;
 }
 
 /* ---------- router ---------- */
@@ -870,7 +985,7 @@ function render(){
   (V[S.view] || V.home)();
 }
 function eventChanged(){
-  if(S.view === "board" && boardState){ boardRender(false, true); return; }
+  if(S.view === "board" && boardState){ if(boardState.style !== (isGame() ? "game" : "classic")){ V.board(); return; } boardRender(false, true); return; }
   if(S.view === "create") return;           // don't clobber a form in progress
   render();
 }
@@ -1035,8 +1150,8 @@ function blankTeam(i){ return {id: rid(6), name: `Team ${i+1}`, color: TEAM_COLO
 V.create = () => {
   const editing = !!S.viewCtx.edit;
   const draft = S.viewCtx.draft || (editing && S.event
-    ? JSON.parse(JSON.stringify({theme:S.event.theme||"arena", orgName:S.event.orgName||"", brandColor:S.event.brandColor||DEFAULT_BRAND, name:S.event.name, buildingFor:S.event.buildingFor||"", deliverables:S.event.deliverables||[], teams:S.event.teams, questions:S.event.questions}))
-    : {theme: store.get("vibe","arena"), orgName:"", brandColor: THEMES[store.get("vibe","arena")]?.accent || DEFAULT_BRAND, name:"AI Hackathon", buildingFor:"", deliverables:[{id:rid(6), name:"", desc:""}], teams:[blankTeam(0), blankTeam(1)], questions: DEFAULT_QUESTIONS.map(t => ({id:rid(6), text:t}))});
+    ? JSON.parse(JSON.stringify({boardStyle:S.event.boardStyle||"classic", theme:S.event.theme||"arena", orgName:S.event.orgName||"", brandColor:S.event.brandColor||DEFAULT_BRAND, name:S.event.name, buildingFor:S.event.buildingFor||"", deliverables:S.event.deliverables||[], teams:S.event.teams, questions:S.event.questions}))
+    : {boardStyle:"classic", theme: store.get("vibe","arena"), orgName:"", brandColor: THEMES[store.get("vibe","arena")]?.accent || DEFAULT_BRAND, name:"AI Hackathon", buildingFor:"", deliverables:[{id:rid(6), name:"", desc:""}], teams:[blankTeam(0), blankTeam(1)], questions: DEFAULT_QUESTIONS.map(t => ({id:rid(6), text:t}))});
   S.viewCtx.draft = draft;
   if(!Array.isArray(draft.deliverables)) draft.deliverables = [];
   if(!THEMES[draft.theme]) draft.theme = "arena";
@@ -1059,7 +1174,7 @@ V.create = () => {
       <input type="text" id="q-${esc(q.id)}" class="qtxt" data-i="${i}" value="${esc(q.text)}" aria-label="Question ${i+1}">
       <button class="x rm-q" data-i="${i}" aria-label="Remove question" type="button">×</button></div>`).join("");
   const isPreset = presets.some(c => c.toLowerCase() === draft.brandColor.toLowerCase());
-  const STEPS = ["Theme","Branding","Teams","Brief","Questions"];
+  const STEPS = ["Look","Branding","Teams","Brief","Questions"];
   const LAST = STEPS.length - 1;
   const step = S.viewCtx.step = Math.min(LAST, Math.max(0, S.viewCtx.step || 0));
   const dlHTML = draft.deliverables.map((d,i) => `
@@ -1073,7 +1188,14 @@ V.create = () => {
       </div></div>
     </div>`).join("");
   const panes = [
-    `<p class="muted" style="font-size:13px;flex:none">Sets the fonts, colours and animated background on every screen, including the projector.</p><div class="fill"><div class="themes">${themeHTML}</div></div>`,
+    `<div class="fill">
+      <div class="stack" style="gap:8px"><span class="lbl">Leaderboard style</span>
+        <div class="stylepick" role="radiogroup" aria-label="Leaderboard style">
+          <button type="button" role="radio" class="sp ${draft.boardStyle !== "game" ? "sel" : ""}" data-style="classic" aria-checked="${draft.boardStyle !== "game"}"><span class="sp-art classic"><i></i><i></i><i></i></span><span><b>Classic</b><small>Clean rows and scores. Calm and professional.</small></span></button>
+          <button type="button" role="radio" class="sp ${draft.boardStyle === "game" ? "sel" : ""}" data-style="game" aria-checked="${draft.boardStyle === "game"}"><span class="sp-art game"><i></i><i></i><i></i></span><span><b>Gamified</b><small>Power bars, streaks, a live feed and animated objective hits.</small></span></button>
+        </div></div>
+      <div class="stack" style="gap:8px"><span class="lbl">Theme</span><p class="muted" style="font-size:13px;margin-top:-4px">Sets the fonts, colours and animated background on every screen.</p><div class="themes">${themeHTML}</div></div>
+    </div>`,
     `<div class="fill"><div class="panel stack">
       <div><label class="lbl" for="org">Organization name</label><input type="text" id="org" value="${esc(draft.orgName)}" placeholder="e.g. Your organization"><p class="hint">Shown on every screen, including the projector.</p></div>
       <div><label class="lbl" for="ename">Event name</label><input type="text" id="ename" value="${esc(draft.name)}"></div>
@@ -1092,7 +1214,7 @@ V.create = () => {
   $app.innerHTML = `<div class="wrap">
     <div class="spread" style="flex:none;padding-top:14px"><button class="back" id="bk">← ${editing?"Host tools":"Home"}</button><span class="eyebrow">${editing?`Editing ${esc(S.code)}`:"Create an event"}</span></div>
     <div class="steps" style="flex:none">${STEPS.map((n,i) => `<button type="button" class="${i===step?"on":i<step?"past":""}" data-s="${i}"><i></i>${i+1}. ${n}</button>`).join("")}</div>
-    <h2 style="flex:none">${["Pick a theme","Add your branding","Teams & objectives","What teams are building","Judging questions"][step]}</h2>
+    <h2 style="flex:none">${["Choose the look","Add your branding","Teams & objectives","What teams are building","Judging questions"][step]}</h2>
     ${panes[step]}
     <p class="err" id="er" style="flex:none"></p>
     <div class="row" style="flex:none;flex-wrap:nowrap">${step>0?`<button class="btn" id="prevS" style="flex:1">Back</button>`:""}
@@ -1122,6 +1244,7 @@ V.create = () => {
   onAll(".steps button", el => { sync(); S.viewCtx.step = +el.dataset.s; V.create(); });
   on("#prevS", () => { sync(); S.viewCtx.step = step-1; V.create(); });
   on("#nextS", () => { sync(); S.viewCtx.step = step+1; V.create(); });
+  onAll(".sp", el => { sync(); draft.boardStyle = el.dataset.style; V.create(); });
   onAll(".tcard", el => { sync(); draft.theme = el.dataset.k; draft.brandColor = THEMES[el.dataset.k].accent; V.create(); });
   onAll(".bc", el => { sync(); draft.brandColor = el.dataset.c; V.create(); });
   on("#custom", e => { sync(); draft.brandColor = e.target.value; V.create(); }, "change");
@@ -1144,6 +1267,7 @@ V.create = () => {
     sync();
     const er = $app.querySelector("#er");
     const clean = {
+      boardStyle: draft.boardStyle === "game" ? "game" : "classic",
       theme: draft.theme, orgName: draft.orgName.trim(), brandColor: isHex(draft.brandColor) ? draft.brandColor : DEFAULT_BRAND,
       name: draft.name.trim() || "AI Hackathon",
       buildingFor: (draft.buildingFor||"").trim(),
@@ -1530,11 +1654,13 @@ V.judgeScore = () => {
 
 /* ----- Leaderboard ----- */
 let boardState = null;
-function stopBoard(){ if(boardState){ boardState.wake?.release?.().catch(()=>{}); boardState = null; } }
+function stopBoard(){ if(boardState){ boardState.wake?.release?.().catch(()=>{}); clearInterval(boardState.iv); clearTimeout(boardState.reorderT); boardState = null; } }
 V.board = () => {
   if(!needEvent()) return;
   stopBoard();
   boardState = {
+    style: isGame() ? "game" : "classic",
+    shownDone:new Map(), shownJ:new Map(), laneQ:{}, busy:0, streak:new Map(), lastAt:new Map(), feedQ:[], feeding:false, recent:[],
     rows:new Map(), shown:new Map(), mode:null, leader:null, pulse:null, pops:new Map(),
     known:new Set(Object.entries(S.scores).filter(([,s]) => s.submitted).map(([k,s]) => k+":"+s.total)),
     finished:new Set(teams().filter(t => teamProgress(t).finished).map(t => t.id)),
@@ -1542,7 +1668,7 @@ V.board = () => {
   };
   try{ navigator.wakeLock?.request("screen").then(w => { if(boardState) boardState.wake = w; }).catch(()=>{}); }catch{}
   const org = orgName();
-  $app.innerHTML = `<div class="lb">
+  $app.innerHTML = `<div class="lb ${isGame() ? "game" : ""}">
     <div class="lb-top"><div class="lb-id"><span class="mark">${esc(initials(org || S.event.name))}</span><div class="stack" style="gap:6px;min-width:0">
       <span class="live" id="lbstatus">${S.ended?"FINAL RESULTS":"LIVE"}${org?` · ${esc(org.toUpperCase())}`:""}</span><h1 class="lb-title" id="lbt">${esc(S.event.name)}</h1><div id="brief">${briefHTML()}</div></div></div>
       <div class="lb-timer">${timerHTML("big")}</div>
@@ -1557,9 +1683,11 @@ V.board = () => {
   on("#fs", () => { try{ (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen())?.catch?.(()=>{}); }catch{} });
   on("#ex", () => { saveSession({role:null}); go("roles"); });
   boardRender(true); tickTimers();
+  if(isGame()) boardState.iv = setInterval(gTick, 1000);
 };
 function boardUpdate(kind, prev, prevCounts){
   if(!boardState) return;
+  if(boardState.style === "game"){ gUpdate(kind, prevCounts); boardRender(false); return; }
   const ts = teams();
   if(kind === "scores" && !S.revealed){
     if(S.scoresLoaded && prevCounts) ts.forEach((t,i) => {
@@ -1603,6 +1731,7 @@ function boardRender(first, eventEdit){
   const st = document.getElementById("stats");
   if(st) st.innerHTML = `<div><b>${ts.length}</b><small>teams</small></div><div><b>${objDone}<span class="muted" style="font-size:.6em">/${objTotal}</span></b><small>objectives done</small></div><div><b>${ts.filter(t => teamProgress(t).finished).length}</b><small>builds submitted</small></div><div><b>${n}</b><small>scorecards in</small></div>`;
   const lbs = document.getElementById("lbstatus"); if(lbs) lbs.textContent = (S.ended || S.revealed ? "FINAL RESULTS" : "LIVE") + (orgName() ? " · " + orgName().toUpperCase() : "");
+  if(boardState.style === "game"){ if(st && !S.revealed) st.insertAdjacentHTML("beforeend", `<div class="ghid">${GICON.lock}<small>Scores hidden until the reveal</small></div>`); return gameRender(first); }
   const mode = (n || S.ended || S.revealed) ? "board" : "idle";
   if(mode !== boardState.mode){
     const wasIdle = boardState.mode === "idle";
@@ -1684,6 +1813,249 @@ function boardRender(first, eventEdit){
     if(el) setTimeout(() => { const r = el.getBoundingClientRect(); burst(r.left + r.width*.88, r.top + r.height/2, 70); }, 500);
   }
   boardState.leader = leader; boardState.pulse = null;
+}
+
+/* ---------- gamified leaderboard ---------- */
+const isGame = () => !!(S.event && S.event.boardStyle === "game");
+const GICON = {
+  obj:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>`,
+  card:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>`,
+  up:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 15l7-7 7 7"/></svg>`,
+  down:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg>`,
+  flag:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>`,
+  bolt:`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>`,
+  lock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`
+};
+const gWait = ms => new Promise(r => setTimeout(r, REDUCED ? 0 : ms));
+const gAgo = ts => { if(!ts) return ""; const s = Math.round((Date.now() - ts)/1000); return s < 10 ? "just now" : s < 60 ? `${s}s ago` : `${Math.round(s/60)}m ago`; };
+const gSlots = () => Math.max(3, ...teams().map(t => judgesFor(t)));
+
+function gameRender(first){
+  const st = boardState, stage = document.getElementById("stage"); if(!stage || !st) return;
+  if(!stage.querySelector("#glanes")){
+    st.rows.clear();
+    stage.innerHTML = `<div class="gticker" id="gticker" aria-live="polite"></div>
+      <div class="garena"><div class="glanes" id="glanes"></div>
+      <aside class="gfeed" aria-label="Live feed"><div class="gfeed-h"><span>LIVE FEED</span><span class="grate" id="grate"></span></div><div class="gitems" id="gfeed" aria-live="polite"><p class="gempty">Objectives, scorecards and overtakes appear here as they happen.</p></div></aside></div>`;
+  }
+  st.mode = "game";
+  const ts = teams(), box = document.getElementById("glanes");
+  ts.forEach((t,i) => {
+    if(!st.shownDone.has(t.id)) st.shownDone.set(t.id, doneSet(t).size);
+    if(!st.shownJ.has(t.id)) st.shownJ.set(t.id, judgesFor(t));
+    if(!st.rows.has(t.id)){ const el = gLaneEl(t); st.rows.set(t.id, el); box.appendChild(el); }
+  });
+  st.rows.forEach((el, id) => { if(!ts.some(t => t.id === id)){ el.remove(); st.rows.delete(id); } });
+  // anything not animating shows its real state
+  ts.forEach(t => { if(!st.laneQ[t.id] || st.laneQ[t.id].idle){ st.shownDone.set(t.id, doneSet(t).size); st.shownJ.set(t.id, judgesFor(t)); } });
+  const order = gOrder();
+  ts.forEach(t => gPaint(st.rows.get(t.id), t, order.indexOf(t.id)));
+  if(first || st.busy === 0) gReorder(order, first); else gScheduleReorder();
+}
+function gOrder(){
+  const ts = teams();
+  return ts.map((t,i) => ({t, i, sc:teamScore(t), pct: (t.objectives||[]).length ? doneSet(t).size / t.objectives.length : 0}))
+    .sort(S.revealed ? (a,b) => b.sc.sum - a.sc.sum || b.pct - a.pct || a.i - b.i : (a,b) => b.pct - a.pct || a.i - b.i).map(r => r.t.id);
+}
+function gLaneEl(t){
+  const el = document.createElement("div"); el.className = "glane"; el.dataset.id = t.id;
+  el.innerHTML = `<div class="grank"><b></b><span class="gdelta"></span></div>
+    <div class="gwho"><div class="gnm"></div><div class="gsub"><div class="gbase"><span class="gtag"><span></span></span><span class="gchips"></span></div><div class="gev"></div></div></div>
+    <div class="gpower"><div class="gsegs"></div><div class="gmeta"><span><span class="gpct"></span> complete</span><span class="glast"></span></div></div>
+    <div class="gscore"><div class="gq"></div><div class="gpips"></div></div>`;
+  return el;
+}
+function gPaint(el, t, rankIdx){
+  if(!el) return;
+  const st = boardState, i = teams().indexOf(t), objs = t.objectives || [], total = objs.length;
+  const n = Math.min(st.shownDone.get(t.id) || 0, total), p = teamProgress(t);
+  el.style.setProperty("--tc", teamColor(t, i));
+  if(!el.querySelector(".grank b").textContent) el.querySelector(".grank b").textContent = rankIdx + 1;
+  el.querySelector(".gnm").textContent = t.name;
+  const isWin = S.revealed && !st.revealing && rankIdx === 0 && teamScore(t).sum > 0;
+  el.classList.toggle("winner", isWin);
+  const tag = el.querySelector(".gtag");
+  tag.className = "gtag" + (isWin ? " win" : p.finished ? " done" : "");
+  tag.firstChild.textContent = isWin ? "WINNER" : p.finished ? "SUBMITTED" : `${n}/${total} OBJECTIVES`;
+  const sk = st.streak.get(t.id);
+  el.querySelector(".gchips").innerHTML = !S.revealed && sk && sk.n >= 2 && Date.now() - sk.last < 60000 ? `<span class="gtag streak"><span>${sk.n}× STREAK</span></span>` : "";
+  // blocks: always filled from the left
+  const segs = el.querySelector(".gsegs");
+  if(segs.children.length !== Math.max(1, total)) segs.innerHTML = Array.from({length: Math.max(1, total)}, () => "<i></i>").join("");
+  [...segs.children].forEach((b,k) => b.classList.toggle("on", k < n));
+  el.querySelector(".gpct").textContent = (total ? Math.round(n/total*100) : 0) + "%";
+  el.querySelector(".glast").textContent = gAgo(st.lastAt.get(t.id));
+  // score
+  const q = el.querySelector(".gq"), jn = st.shownJ.get(t.id) || 0, slots = gSlots();
+  const pips = el.querySelector(".gpips");
+  if(pips.children.length !== slots + 1) pips.innerHTML = `<small>JUDGES</small>` + Array.from({length: slots}, () => "<i></i>").join("");
+  [...pips.querySelectorAll("i")].forEach((b,k) => b.classList.toggle("on", k < jn));
+  if(!S.revealed){ q.className = "gq hid"; q.innerHTML = `${GICON.lock}???`; st.shown.set(t.id, 0); }
+  else if(st.revealing){ q.className = "gq hid"; q.textContent = String(teamScore(t).sum).replace(/\d/g, "0"); }
+  else {
+    const sum = teamScore(t).sum, was = st.shown.get(t.id) || 0;
+    if(q.classList.contains("hid") || !q.querySelector(".gnum")){ q.className = "gq"; q.innerHTML = `<span class="gnum">${was}</span>`; }
+    if(was !== sum || q.querySelector(".gnum").textContent !== String(sum)){ countUp(q.querySelector(".gnum"), was, sum, 1200); st.shown.set(t.id, sum); }
+  }
+}
+function gReorder(order, first){
+  const st = boardState, box = document.getElementById("glanes"); if(!st || !box) return;
+  const current = [...box.children].map(el => el.dataset.id);
+  if(current.join() === order.join()){ order.forEach((id,k) => { const el = st.rows.get(id); if(el) el.querySelector(".grank b").textContent = k + 1; }); return; }
+  const firstTop = new Map(); st.rows.forEach((el,id) => firstTop.set(id, el.getBoundingClientRect().top));
+  order.forEach(id => { const el = st.rows.get(id); if(el) box.appendChild(el); });
+  order.forEach((id, k) => {
+    const el = st.rows.get(id); if(!el) return;
+    el.querySelector(".grank b").textContent = k + 1;
+    const move = current.indexOf(id) - k;
+    if(first || current.indexOf(id) < 0) return;
+    const dy = firstTop.get(id) - el.getBoundingClientRect().top;
+    if(Math.abs(dy) > 1 && !REDUCED) el.animate([{transform:`translateY(${dy}px)`},{transform:"none"}], {duration:850, easing:"cubic-bezier(.2,.9,.25,1.1)"});
+    const d = el.querySelector(".gdelta");
+    if(move){ d.className = "gdelta " + (move > 0 ? "up" : "down"); d.innerHTML = (move > 0 ? GICON.up : GICON.down) + Math.abs(move); clearTimeout(el._dT); el._dT = setTimeout(() => { d.className = "gdelta"; d.innerHTML = ""; }, 5000); }
+    if(move > 0 && !st.revealing){ const t = teams().find(x => x.id === id); const passed = teams().find(x => x.id === current[k]); gFeed({tc: teamColor(t, teams().indexOf(t)), icon:"up", title:`${t.name} moves up to #${k+1}`, detail: move > 1 ? `Passed ${move} teams` : `Passed ${passed ? passed.name : "a team"}`}); }
+  });
+}
+function gScheduleReorder(){ const st = boardState; if(!st) return; clearTimeout(st.reorderT); st.reorderT = setTimeout(() => { if(boardState === st && st.busy === 0) gReorder(gOrder()); else gScheduleReorder(); }, REDUCED ? 0 : 900); }
+
+/* each team's lane plays its own animations in order; different teams animate at the same time */
+function gOnLane(id, fn){
+  const st = boardState; if(!st) return;
+  st.pend = st.pend || {}; st.pend[id] = (st.pend[id] || 0) + 1;
+  const prev = st.laneQ[id] || Promise.resolve();
+  const next = prev.then(async () => { if(boardState !== st) return; st.busy++; try{ await fn(st.pend[id] > 2); } finally { st.pend[id]--; st.busy--; if(st.busy === 0) gScheduleReorder(); } }).catch(() => {});
+  next.idle = false; st.laneQ[id] = next; next.then(() => { if(st.laneQ[id] === next) next.idle = true; });
+}
+function gShowEvent(el, html, ms){
+  const sub = el.querySelector(".gsub"), ev = el.querySelector(".gev");
+  ev.innerHTML = html; sub.classList.add("on");
+  clearTimeout(el._evT); el._evT = setTimeout(() => sub.classList.remove("on"), ms);
+}
+function gSweep(el){ const s = document.createElement("div"); s.className = "gsweep"; el.appendChild(s); setTimeout(() => s.remove(), 1200); el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit"); }
+function gSparks(host, x, y, n){
+  if(REDUCED) return;
+  const r = document.createElement("div"); r.className = "gripple"; r.style.left = x + "px"; r.style.top = y + "px"; host.appendChild(r); setTimeout(() => r.remove(), 950);
+  for(let i = 0; i < n; i++){
+    const a = Math.random()*Math.PI*2, d = 20 + Math.random()*36, sp = document.createElement("i");
+    sp.className = "gspark"; sp.style.left = x + "px"; sp.style.top = y + "px";
+    sp.style.setProperty("--dx", Math.cos(a)*d + "px"); sp.style.setProperty("--dy", Math.sin(a)*d*.6 + "px"); sp.style.setProperty("--r", a + "rad");
+    host.appendChild(sp); setTimeout(() => sp.remove(), 850);
+  }
+}
+function gStamp(el, text){ const power = el.querySelector(".gpower"), s = document.createElement("span"); s.className = "gstamp"; s.textContent = text; power.appendChild(s); setTimeout(() => s.remove(), 2800); }
+
+/* turn database changes into lane animations and feed cards */
+function gUpdate(kind, prevCounts){
+  const st = boardState, ts = teams();
+  if(kind === "progress"){
+    ts.forEach(t => {
+      const now = doneSet(t), prev = st.done.get(t.id) || new Set(), color = teamColor(t, ts.indexOf(t)), total = (t.objectives||[]).length;
+      const fresh = [...now].filter(id => !prev.has(id));
+      st.done.set(t.id, now);
+      if(now.size < (st.shownDone.get(t.id) || 0) && (!st.laneQ[t.id] || st.laneQ[t.id].idle)) st.shownDone.set(t.id, now.size);
+      if(S.progressLoaded && fresh.length){
+        st.lastAt.set(t.id, Date.now());
+        fresh.forEach((oid, j) => {
+          const text = ((t.objectives || []).find(o => o.id === oid) || {}).text || "an objective";
+          const count = prev.size + j + 1;
+          const sk = st.streak.get(t.id) || {n:0, last:0}, nowT = Date.now();
+          sk.n = nowT - sk.last < 25000 ? sk.n + 1 : 1; sk.last = nowT; st.streak.set(t.id, sk);
+          gFeed({tc:color, icon:"obj", title:`${t.name} cleared an objective`, detail:`${text} · ${count}/${total}`});
+          if(sk.n === 3 || sk.n === 5) gFeed({tc:"#FF8A3D", icon:"bolt", title:`${t.name} is on a ${sk.n}× streak`, detail:"Objectives in quick succession", big:true});
+          const ms = [[.5,"HALFWAY"],[.8,"FINAL STRETCH"],[1,"ALL OBJECTIVES"]].find(([m]) => total && (count-1)/total < m && count/total >= m);
+          if(ms) gFeed({tc:color, icon:"flag", title:`${t.name}: ${ms[1].toLowerCase()}`, detail:`${Math.round(count/total*100)}% of objectives complete`, big:true});
+          gOnLane(t.id, fast => gAnimObjective(t, text, ms && ms[1], fast));
+        });
+      }
+      const p = teamProgress(t);
+      if(p.finished && !st.finished.has(t.id)){
+        st.finished.add(t.id);
+        if(S.progressLoaded){ st.lastAt.set(t.id, Date.now()); gFeed({tc:color, icon:"flag", title:`${t.name} submitted their build`, detail:"Build locked in", big:true}); gOnLane(t.id, () => gAnimSubmit(t)); }
+      } else if(!p.finished) st.finished.delete(t.id);
+    });
+  }
+  if(kind === "scores" && !S.revealed && S.scoresLoaded && prevCounts){
+    ts.forEach(t => {
+      const before = prevCounts[t.id] || 0, now = S.scoreCounts[t.id] || 0;
+      for(let k = before; k < now; k++){
+        gFeed({tc:"var(--brand)", icon:"card", title:`Scorecard in for ${t.name}`, detail:`${k+1} judge${k ? "s" : ""} in · score stays hidden`});
+        gOnLane(t.id, fast => gAnimJudge(t, fast));
+      }
+    });
+  } else if(kind === "scores" && S.revealed){
+    for(const [key, c] of Object.entries(S.scores)){
+      if(!c.submitted) continue;
+      const sig = key + ":" + c.total; if(st.known.has(sig)) continue; st.known.add(sig);
+      if(!S.scoresLoaded || st.revealing) continue;
+      const t = ts.find(x => x.id === c.teamId); if(!t) continue;
+      gFeed({tc: teamColor(t, ts.indexOf(t)), icon:"card", title:`${c.judge} scored ${t.name}`, detail:`${c.total} points`});
+      const el = st.rows.get(t.id); if(el) gSweep(el);
+    }
+  }
+}
+async function gAnimObjective(t, text, milestone, fast){
+  const st = boardState, el = st && st.rows.get(t.id); if(!el) return;
+  const total = (t.objectives||[]).length, k = st.shownDone.get(t.id) || 0;
+  if(k >= Math.min(total, doneSet(t).size)) return;        // unticked in the meantime: nothing to light
+  const power = el.querySelector(".gpower"), seg = el.querySelectorAll(".gsegs i")[k]; if(!seg) return;
+  const pr = power.getBoundingClientRect(), sr = seg.getBoundingClientRect();
+  const x = sr.left - pr.left + sr.width/2, y = sr.top - pr.top + sr.height/2;
+  gSweep(el);
+  gShowEvent(el, `+1 OBJECTIVE <b>${esc(text)}</b>`, 2800);
+  if(!REDUCED && !fast){
+    const c = document.createElement("div"); c.className = "gcomet"; c.style.top = y + "px"; power.appendChild(c);
+    await c.animate([{left:"-60px", opacity:0},{opacity:1, offset:.2},{left:(x - 56) + "px", opacity:1}], {duration:520, easing:"cubic-bezier(.5,0,.8,.3)", fill:"forwards"}).finished.catch(() => {});
+    c.remove();
+  }
+  st.shownDone.set(t.id, k + 1);
+  gPaint(el, t, gOrder().indexOf(t.id));
+  const b = el.querySelectorAll(".gsegs i")[k]; b.classList.remove("ignite"); void b.offsetWidth; b.classList.add("ignite");
+  gSparks(power, x, y, 10);
+  if(milestone) gStamp(el, milestone);
+  await gWait(fast ? 260 : 900);
+}
+async function gAnimJudge(t, fast){
+  const st = boardState, el = st && st.rows.get(t.id); if(!el) return;
+  const k = st.shownJ.get(t.id) || 0; if(k >= judgesFor(t)) return;
+  st.shownJ.set(t.id, k + 1); gPaint(el, t, gOrder().indexOf(t.id));
+  const pip = el.querySelectorAll(".gpips i")[k]; if(pip){ pip.classList.remove("pop"); void pip.offsetWidth; pip.classList.add("pop"); }
+  const q = el.querySelector(".gscore"); q.classList.remove("shake"); void q.offsetWidth; q.classList.add("shake");
+  gShowEvent(el, `SCORECARD IN <b>${k+1} judge${k ? "s" : ""} in</b>`, 2200);
+  await gWait(fast ? 220 : 700);
+}
+async function gAnimSubmit(t){
+  const st = boardState, el = st && st.rows.get(t.id); if(!el) return;
+  st.shownDone.set(t.id, doneSet(t).size); gPaint(el, t, gOrder().indexOf(t.id));
+  gSweep(el);
+  const segs = el.querySelector(".gsegs"); segs.classList.remove("full"); void segs.offsetWidth; segs.classList.add("full");
+  [...segs.children].forEach((b,k) => b.style.setProperty("--k", k));
+  gShowEvent(el, `BUILD SUBMITTED <b>locked in</b>`, 3200); gStamp(el, "SUBMITTED");
+  await gWait(1400);
+}
+
+/* live feed: one card at a time, never more than a handful on screen */
+function gFeed(item){ const st = boardState; if(!st || st.style !== "game") return; st.feedQ.push(item); st.recent.push(Date.now()); if(!st.feeding) gDrain(st); }
+async function gDrain(st){
+  st.feeding = true;
+  while(st.feedQ.length && boardState === st){
+    const it = st.feedQ.shift(), html = `<div class="gic">${GICON[it.icon]}</div><div class="gtx"><b>${esc(it.title)}</b><span>${esc(it.detail)}</span></div><time>now</time>`;
+    [["gfeed", 8], ["gticker", 2]].forEach(([id, max]) => {
+      const box = document.getElementById(id); if(!box) return;
+      box.querySelector(".gempty")?.remove();
+      const el = document.createElement("div"); el.className = "gitem" + (it.big ? " big" : ""); el.style.setProperty("--tc", it.tc); el.innerHTML = html; el.dataset.at = Date.now();
+      box.prepend(el);
+      [...box.children].slice(max).forEach(x => { if(!x.classList.contains("gone")){ x.classList.add("gone"); setTimeout(() => x.remove(), 400); } });
+    });
+    await gWait(st.feedQ.length > 4 ? 140 : 260);
+  }
+  st.feeding = false;
+}
+function gTick(){
+  const st = boardState; if(!st || st.style !== "game") return;
+  document.querySelectorAll(".gitem time").forEach(t => { const s = Math.round((Date.now() - +t.parentElement.dataset.at)/1000); t.textContent = s < 5 ? "now" : s < 60 ? s + "s" : Math.round(s/60) + "m"; });
+  st.rows.forEach((el, id) => { const l = el.querySelector(".glast"); if(l) l.textContent = gAgo(st.lastAt.get(id)); });
+  st.recent = st.recent.filter(x => Date.now() - x < 60000);
+  const r = document.getElementById("grate"); if(r) r.textContent = st.recent.length ? `${st.recent.length} UPDATE${st.recent.length === 1 ? "" : "S"} / MIN` : "";
 }
 
 /* ---------- countdown timer ---------- */

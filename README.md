@@ -35,3 +35,12 @@ Scores are hidden until the host reveals them. The leaderboard and team screens 
 ## The brief
 
 Create and Edit have a **Brief** step: an optional "Building for" client name and up to 4 deliverables, each with a short name, a one-line description and the teams that build it (all teams by default). They appear in a strip at the top of the leaderboard so anyone in the room can see what teams are building. Leave it empty and the strip is hidden.
+
+## Leaderboard style
+
+Create and Edit start with **Look**: pick the theme and the leaderboard style.
+
+- **Classic** (default): clean rows and scores.
+- **Gamified**: slanted power bars, a live feed of every event, and animated objective hits (a light streak hits the next block, which ignites with sparks), plus streaks, milestone stamps, overtake arrows and judge markers. Each team's row animates on its own, so bursts of updates play at the same time; updates to the same team play in order and speed up if they pile up. The feed shows the newest 8 events.
+
+In both styles, objective blocks fill from the left no matter which objectives a team ticks.
