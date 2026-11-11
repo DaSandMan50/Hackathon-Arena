@@ -421,6 +421,12 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
   .bi > span{display:none}
   body[data-view=board] .stats{display:none}
 }
+/* Loading state on buttons */
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:spin .7s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn[aria-busy="true"]{opacity:1;pointer-events:none;cursor:progress}
+@media (prefers-reduced-motion:reduce){.spin{animation:spin 1.4s linear infinite!important}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* Modal */
 .modal{position:fixed;inset:0;z-index:58;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:color-mix(in srgb,var(--ink) 80%,transparent);backdrop-filter:blur(6px);animation:fadeIn .25s ease}
 .modal .box{width:min(460px,100%);max-height:100%;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,3vh,24px);border-radius:calc(var(--r) + 4px);border:1px solid var(--line-2);background:var(--panel);box-shadow:0 30px 80px -30px rgba(0,0,0,.8);animation:zoomIn .4s var(--spring)}
@@ -758,7 +764,12 @@ function modal({title, body, actions, warn}){
   const el = document.createElement("div"); el.className = "modal"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
   el.innerHTML = `<div class="box ${warn?"warn":""}"><h2 style="font-size:calc(24px * var(--dscale))">${title}</h2><div class="muted" style="display:flex;flex-direction:column;gap:10px">${body}</div><div class="row" style="justify-content:flex-end">${actions.map((a,i) => `<button class="btn sm ${a.danger?"danger":a.primary?"brand":"ghost"}" data-i="${i}">${esc(a.label)}</button>`).join("")}</div></div>`;
   document.body.appendChild(el);
-  el.querySelectorAll("button[data-i]").forEach(b => b.addEventListener("click", async () => { const a = actions[+b.dataset.i]; const vals = {}; el.querySelectorAll("input").forEach(i => vals[i.id] = i.value); el.remove(); if(a.run) await a.run(vals); }));
+  el.querySelectorAll("button[data-i]").forEach(b => b.addEventListener("click", async () => {
+    if(isBusy(b)) return;
+    const a = actions[+b.dataset.i]; const vals = {}; el.querySelectorAll("input").forEach(i => vals[i.id] = i.value);
+    if(a.stay){ busy(b, true, "Checking"); el.querySelectorAll(".err").forEach(x => x.remove()); if(a.run) await a.run(vals); if(el.isConnected) el.remove(); return; }
+    el.remove(); if(a.run) await a.run(vals);
+  }));
   el.querySelectorAll("input").forEach(i => i.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); el.querySelector(".btn.brand, .btn.danger")?.click(); } }));
   el.addEventListener("click", e => { if(e.target === el) el.remove(); });
   const esc_ = e => { if(e.key === "Escape"){ el.remove(); removeEventListener("keydown", esc_); } }; addEventListener("keydown", esc_);
@@ -769,7 +780,7 @@ async function openHostTools(errMsg){
   const code = S.code; if(!code) return;
   modal({title:"Host tools", body:`<p>Enter the host password for <b style="color:var(--text)">${esc((S.event && S.event.name) || code)}</b> (${esc(code)}).</p>${errMsg?`<p class="err">${esc(errMsg)}</p>`:""}
       <div><label class="lbl" for="hpwq">Host password</label><input type="password" id="hpwq" autocomplete="current-password"></div>`,
-    actions:[{label:"Cancel"}, {label:"Open host tools", primary:true, run: async v => {
+    actions:[{label:"Cancel"}, {label:"Open host tools", primary:true, stay:true, run: async v => {
       const p = (v.hpwq || "").trim(); if(!p) return openHostTools("Enter your host password.");
       try{
         if(!must(await S.sb.rpc("verify_host", {p_code: code, p_password: p}))) return openHostTools("That password doesn't match this event.");
@@ -883,6 +894,12 @@ function dataChanged(kind, prev, prevCounts){
   if(S.view === "teamBoard" && kind === "progress"){ V.teamBoard(); return; }
   if(["judgeTeams","hostLive","teamPick"].includes(S.view)) render();
 }
+function busy(btn, on, label){
+  if(!btn) return;
+  if(on){ if(btn.getAttribute("aria-busy") !== "true") btn.dataset.label = btn.innerHTML; btn.setAttribute("aria-busy", "true"); btn.innerHTML = `<span class="spin" aria-hidden="true"></span><span class="sr">${esc(label || "Loading")}</span>`; }
+  else { btn.removeAttribute("aria-busy"); if(btn.dataset.label !== undefined) btn.innerHTML = btn.dataset.label; }
+}
+const isBusy = btn => btn && btn.getAttribute("aria-busy") === "true";
 const on = (sel, fn, ev="click") => { const el = $app.querySelector(sel); if(el) el.addEventListener(ev, fn); };
 const onAll = (sel, fn, ev="click") => $app.querySelectorAll(sel).forEach(el => el.addEventListener(ev, e => fn(el, e)));
 function barHTML(){
@@ -998,11 +1015,12 @@ V.join = () => {
   on("#host", () => go("hostLogin"));
   on("#f", async e => {
     e.preventDefault();
-    const code = cleanCode(inp.value), er = $app.querySelector("#er");
+    const code = cleanCode(inp.value), er = $app.querySelector("#er"), btn = $app.querySelector("#f button[type=submit]");
+    if(isBusy(btn)) return;
     if(code.length < 4){ er.textContent = "Codes are 5 characters, like K7QX2."; return; }
-    er.textContent = "Checking…";
-    try{ if(!(await eventExists(code))){ er.textContent = "No event uses that code. Check it with your host."; return; } }
-    catch{ er.textContent = "Couldn't reach the event. Check your connection and try again."; return; }
+    er.textContent = ""; busy(btn, true, "Finding your event");
+    try{ if(!(await eventExists(code))){ busy(btn, false); er.textContent = "No event uses that code. Check it with your host."; return; } }
+    catch{ busy(btn, false); er.textContent = "Couldn't reach the event. Check your connection and try again."; return; }
     saveSession({code, role:null}); connectEvent(code); go("roles");
   }, "submit");
 };
@@ -1183,11 +1201,12 @@ V.hostLogin = () => {
   on("#bk", () => go("join"));
   on("#f", async e => {
     e.preventDefault();
-    const code = cleanCode($app.querySelector("#hc").value), pw = $app.querySelector("#hp").value, er = $app.querySelector("#er");
+    const code = cleanCode($app.querySelector("#hc").value), pw = $app.querySelector("#hp").value, er = $app.querySelector("#er"), btn = $app.querySelector("#f button[type=submit]");
+    if(isBusy(btn)) return;
     if(code.length < 4 || !pw){ er.textContent = "Enter your event code and host password."; return; }
-    er.textContent = "Checking…";
-    try{ const ok = must(await S.sb.rpc("verify_host", {p_code: code, p_password: pw})); if(!ok){ er.textContent = "That code and password don't match."; return; } }
-    catch{ er.textContent = "Couldn't reach the event. Try again."; return; }
+    er.textContent = ""; busy(btn, true, "Checking your password");
+    try{ const ok = must(await S.sb.rpc("verify_host", {p_code: code, p_password: pw})); if(!ok){ busy(btn, false); er.textContent = "That code and password don't match."; return; } }
+    catch{ busy(btn, false); er.textContent = "Couldn't reach the event. Try again."; return; }
     unlockHost(code, pw);
     try{ const ev = must(await S.sb.from("events").select("data").eq("code", code).maybeSingle()); rememberHosted(code, ev && ev.data && ev.data.name); }catch{ rememberHosted(code, ""); }
     saveSession({code, role:"host"}); connectEvent(code); go("hostLive");
@@ -1413,12 +1432,13 @@ V.judgeName = () => {
   on("#bk", () => { saveSession({role:null}); go("roles"); });
   on("#f", async e => {
     e.preventDefault();
-    const jc = cleanCode($app.querySelector("#jc").value), fn = $app.querySelector("#fn").value.trim(), ln = $app.querySelector("#ln").value.trim(), er = $app.querySelector("#er");
+    const jc = cleanCode($app.querySelector("#jc").value), fn = $app.querySelector("#fn").value.trim(), ln = $app.querySelector("#ln").value.trim(), er = $app.querySelector("#er"), btn = $app.querySelector("#f button[type=submit]");
+    if(isBusy(btn)) return;
     if(jc.length !== 6){ er.textContent = "Judge codes are 6 characters. Ask your host for it."; return; }
     if(!fn || !ln){ er.textContent = "Enter both your first and last name."; return; }
-    er.textContent = "Checking…";
-    try{ if(!must(await S.sb.rpc("verify_judge", {p_code: S.code, p_judge_code: jc}))){ er.textContent = "That judge code isn't right. Check it with your host."; return; } }
-    catch{ er.textContent = "Couldn't check the code. Check your connection and try again."; return; }
+    er.textContent = ""; busy(btn, true, "Checking your judge code");
+    try{ if(!must(await S.sb.rpc("verify_judge", {p_code: S.code, p_judge_code: jc}))){ busy(btn, false); er.textContent = "That judge code isn't right. Check it with your host."; return; } }
+    catch{ busy(btn, false); er.textContent = "Couldn't check the code. Check your connection and try again."; return; }
     store.set("judge:"+S.code, jc);
     saveSession({judgeName: `${fn} ${ln}`}); go("judgeTeams");
   }, "submit");
