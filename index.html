@@ -1088,7 +1088,7 @@ V.create = () => {
   const panes = [
     `<p class="muted" style="font-size:13px;flex:none">Sets the fonts, colours and animated background on every screen, including the projector.</p><div class="fill"><div class="themes">${themeHTML}</div></div>`,
     `<div class="fill"><div class="panel stack">
-      <div><label class="lbl" for="org">Organization name</label><input type="text" id="org" value="${esc(draft.orgName)}" placeholder="e.g. University Innovation Lab"><p class="hint">Shown on every screen, including the projector.</p></div>
+      <div><label class="lbl" for="org">Organization name</label><input type="text" id="org" value="${esc(draft.orgName)}" placeholder="e.g. Your organization"><p class="hint">Shown on every screen, including the projector.</p></div>
       <div><label class="lbl" for="ename">Event name</label><input type="text" id="ename" value="${esc(draft.name)}"></div>
       ${editing ? "" : `<div><label class="lbl" for="hpw">Host password</label><input type="password" id="hpw" value="${esc(draft.hostPw||"")}" autocomplete="new-password" placeholder="At least 4 characters"><p class="hint">You'll use this with your event code to edit the event later. There's no way to recover it, so write it down.</p></div>`}
       <div><label class="lbl">Brand colour</label><div class="colors">${presets.map(c => `<button type="button" class="bc ${c.toLowerCase()===draft.brandColor.toLowerCase()?"sel":""}" data-c="${c}" style="background:${c}" aria-label="Brand colour ${c}"></button>`).join("")}
@@ -1097,7 +1097,7 @@ V.create = () => {
     `<div class="spread" style="flex:none"><p class="muted" style="font-size:13px">Each team gets its own objectives checklist.</p><span class="chip">${draft.teams.length} team${draft.teams.length===1?"":"s"}</span></div>
       <div class="fill">${teamHTML}<button class="btn ghost block" id="addT" type="button">+ Add team</button></div>`,
     `<p class="muted" style="font-size:13px;flex:none">Shown at the top of the leaderboard so anyone in the room can see what teams are building. Optional, up to 4. Each one is for all teams unless you pick specific teams.</p>
-      <div class="fill"><div class="panel stack"><div><label class="lbl" for="bfor">Building for (optional)</label><input type="text" id="bfor" maxlength="60" value="${esc(draft.buildingFor||"")}" placeholder="e.g. Campus Student Center"></div></div>
+      <div class="fill"><div class="panel stack"><div><label class="lbl" for="bfor">Building for (optional)</label><input type="text" id="bfor" maxlength="60" value="${esc(draft.buildingFor||"")}" placeholder="e.g. Client or partner name"></div></div>
         ${dlHTML}${draft.deliverables.length < 4 ? `<button class="btn ghost block" id="addD" type="button">+ Add deliverable</button>` : ""}</div>`,
     `<div class="spread" style="flex:none"><p class="muted" style="font-size:13px">Placeholders for now. Swap in your real questions any time.</p><span class="chip">max ${draft.questions.length*10} per judge</span></div>
       <div class="fill">${qHTML}<button class="btn ghost block" id="addQ" type="button">+ Add question</button></div>`
