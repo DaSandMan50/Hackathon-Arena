@@ -10,7 +10,7 @@ Live hackathon judging, team checklists and an animated projector leaderboard. O
 
 ## How it works
 
-- **Create** an event: pick a theme, add branding, describe what teams are building (the brief), add teams, objectives and judging questions, and choose a host password. You get a 5-character event code.
+- **Create** an event: pick a theme, add branding, add teams and objectives, describe what teams are building (the brief), add and judging questions, and choose a host password. You get a 5-character event code.
 - **Join** with the code as a team or the leaderboard screen. No accounts.
 - **Judges** also need the event's private 6-character judge code, shown only in Host tools. Scores are only saved when the judge code checks out.
 - **Host tools** (Join → "Host tools"): event code + host password to edit the event or clear scores.
@@ -34,4 +34,4 @@ Scores are hidden until the host reveals them. The leaderboard and team screens 
 
 ## The brief
 
-Create and Edit have a **Brief** step: an optional "Building for" client name and up to 4 deliverables, each with a short name and a one-line description. They appear in a strip at the top of the leaderboard so anyone in the room can see what teams are building. Leave it empty and the strip is hidden.
+Create and Edit have a **Brief** step: an optional "Building for" client name and up to 4 deliverables, each with a short name, a one-line description and the teams that build it (all teams by default). They appear in a strip at the top of the leaderboard so anyone in the room can see what teams are building. Leave it empty and the strip is hidden.
