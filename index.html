@@ -266,8 +266,20 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .tmr.crit .digits{animation:critPulse 1s ease-in-out infinite}
 @keyframes critPulse{50%{transform:scale(1.04);filter:drop-shadow(0 0 14px var(--bad))}}
 .tmr.paused .digits{opacity:.55}
-.tmr.done .digits{animation:doneFlash .8s steps(2) infinite}
-@keyframes doneFlash{50%{opacity:.25}}
+.tmr.done{--tcol:var(--muted)}
+.tmr.done .sep,.tmr.paused .sep{animation:none}
+.tmr.done [data-tmr-status]{color:var(--bad);font-weight:700}
+/* Time's up moment on the leaderboard */
+.tu-ov{position:fixed;inset:0;z-index:57;display:grid;place-items:center;text-align:center;padding:24px;background:radial-gradient(90% 70% at 50% 50%,color-mix(in srgb,var(--bad) 10%,transparent),transparent 70%),color-mix(in srgb,var(--ink) 93%,transparent);backdrop-filter:blur(10px);animation:fadeIn .35s ease;cursor:pointer}
+.tu-ov.out{opacity:0;transition:opacity .7s ease}
+.tu-ov .in{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2.2vh,22px)}
+.tu-ov .k{font-family:var(--f-mono);font-size:clamp(11px,1.6vh,15px);letter-spacing:.34em;text-transform:uppercase;color:var(--bad)}
+.tu-ov h1{font-family:var(--f-display);font-weight:800;font-size:calc(clamp(64px,min(14vw,22vh),220px) * var(--dscale));line-height:.9;letter-spacing:-.045em;color:var(--text);animation:tuIn .8s var(--ease) both}
+@keyframes tuIn{from{opacity:0;transform:scale(1.12);filter:blur(12px)}}
+.tu-ov .z{font-family:var(--f-mono);font-weight:700;font-size:clamp(22px,4vh,40px);letter-spacing:.12em;color:var(--muted)}
+.tu-ov .drain{width:min(320px,60vw);height:3px;border-radius:2px;background:var(--track);overflow:hidden}
+.tu-ov .drain i{display:block;height:100%;background:var(--bad);transform-origin:left;animation:drain var(--dur) linear forwards}
+@keyframes drain{to{transform:scaleX(0)}}
 .tmr.big .digits{font-size:clamp(26px,min(4.4vw,6.6vh),68px)}
 .tmr.mid .digits{font-size:clamp(20px,3.6vh,34px)}
 @media (max-width:520px){.lb .qr svg{width:clamp(64px,10vh,96px);height:clamp(64px,10vh,96px)}.joinbox{padding:8px 12px;gap:10px}.joinurl{display:none}.lb-top{gap:12px}}
@@ -1691,11 +1703,23 @@ function timerHTML(size){
   return `<div class="tmr ${size}" data-tmr><div class="lab"><span>${esc(label)}</span><span data-tmr-status></span></div><div class="digits" data-tmr-digits></div><div class="tbar"><i data-tmr-bar></i></div></div>`;
 }
 let lastDoneKey = null;
+function timesUpOverlay(label){
+  document.querySelector(".tu-ov")?.remove();
+  const ms = 4500, ov = document.createElement("div");
+  ov.className = "tu-ov"; ov.setAttribute("role", "alert"); ov.style.setProperty("--dur", ms + "ms");
+  ov.innerHTML = `<div class="in"><span class="k">${esc(label)} has ended</span><h1>Time's up</h1><span class="z">00:00</span><div class="drain"><i></i></div></div>`;
+  document.body.appendChild(ov);
+  const close = () => { if(!ov.isConnected) return; ov.classList.add("out"); setTimeout(() => ov.remove(), 700); };
+  const t = setTimeout(close, ms); ov.addEventListener("click", () => { clearTimeout(t); close(); });
+}
 function tickTimers(force){
   const els = document.querySelectorAll("[data-tmr]"); const st = timerState();
   if(st.status === "done" && S.timer && S.timer.endsAt !== lastDoneKey){
     const fresh = lastDoneKey !== null || force === "fresh"; lastDoneKey = S.timer.endsAt;
-    if(fresh && els.length) toast(`<b>Time's up!</b> ${esc((S.timer && S.timer.label) || "The countdown")} has ended.`, {ms:7000});
+    if(fresh && els.length){
+      if(S.view === "board") timesUpOverlay((S.timer && S.timer.label) || "Time");
+      else toast(`<b>Time's up!</b> ${esc((S.timer && S.timer.label) || "The countdown")} has ended.`, {ms:7000});
+    }
   }
   if(st.status !== "done" && S.timer && S.timer.endsAt && lastDoneKey === null) lastDoneKey = "";
   els.forEach(el => {
