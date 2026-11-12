@@ -414,6 +414,22 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .btn[aria-busy="true"]{opacity:1;pointer-events:none;cursor:progress}
 @media (prefers-reduced-motion:reduce){.spin{animation:spin 1.4s linear infinite!important}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Sound settings */
+.sndset{display:flex;flex-direction:column;gap:12px}
+.sw{display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;cursor:pointer;color:var(--text)}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw-ui{flex:none;width:42px;height:24px;border-radius:99px;background:var(--track);border:1px solid var(--line-2);position:relative;transition:background .2s}
+.sw-ui::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--muted);transition:transform .2s var(--ease),background .2s}
+.sw input:checked + .sw-ui{background:var(--brand);border-color:transparent}
+.sw input:checked + .sw-ui::after{transform:translateX(18px);background:var(--on-brand)}
+.sw input:focus-visible + .sw-ui{outline:2px solid var(--cyan);outline-offset:2px}
+.sl{display:grid;grid-template-columns:110px minmax(0,1fr) 44px;align-items:center;gap:10px}
+.sl label{font-size:13px;font-weight:600;color:var(--muted)}
+.sl input[type=range]{width:100%;accent-color:var(--brand)}
+.sl input:disabled{opacity:.4}
+.sl output{font-family:var(--f-mono);font-size:12px;color:var(--text);text-align:right}
+.lb-tools .snd{display:inline-flex;align-items:center;gap:8px}
+@media (max-width:480px){.sl{grid-template-columns:90px minmax(0,1fr) 40px}}
 /* Leaderboard style picker */
 .stylepick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sp{display:flex;gap:12px;align-items:center;text-align:left;padding:12px;border-radius:calc(var(--r) * .8);border:2px solid var(--line-2);background:var(--field);transition:border-color .2s,transform .2s var(--ease)}
@@ -1150,8 +1166,8 @@ function blankTeam(i){ return {id: rid(6), name: `Team ${i+1}`, color: TEAM_COLO
 V.create = () => {
   const editing = !!S.viewCtx.edit;
   const draft = S.viewCtx.draft || (editing && S.event
-    ? JSON.parse(JSON.stringify({boardStyle:S.event.boardStyle||"classic", theme:S.event.theme||"arena", orgName:S.event.orgName||"", brandColor:S.event.brandColor||DEFAULT_BRAND, name:S.event.name, buildingFor:S.event.buildingFor||"", deliverables:S.event.deliverables||[], teams:S.event.teams, questions:S.event.questions}))
-    : {boardStyle:"classic", theme: store.get("vibe","arena"), orgName:"", brandColor: THEMES[store.get("vibe","arena")]?.accent || DEFAULT_BRAND, name:"AI Hackathon", buildingFor:"", deliverables:[{id:rid(6), name:"", desc:""}], teams:[blankTeam(0), blankTeam(1)], questions: DEFAULT_QUESTIONS.map(t => ({id:rid(6), text:t}))});
+    ? JSON.parse(JSON.stringify({sound:eventSound(), boardStyle:S.event.boardStyle||"classic", theme:S.event.theme||"arena", orgName:S.event.orgName||"", brandColor:S.event.brandColor||DEFAULT_BRAND, name:S.event.name, buildingFor:S.event.buildingFor||"", deliverables:S.event.deliverables||[], teams:S.event.teams, questions:S.event.questions}))
+    : {sound:{on:true, music:.4, sfx:.8}, boardStyle:"classic", theme: store.get("vibe","arena"), orgName:"", brandColor: THEMES[store.get("vibe","arena")]?.accent || DEFAULT_BRAND, name:"AI Hackathon", buildingFor:"", deliverables:[{id:rid(6), name:"", desc:""}], teams:[blankTeam(0), blankTeam(1)], questions: DEFAULT_QUESTIONS.map(t => ({id:rid(6), text:t}))});
   S.viewCtx.draft = draft;
   if(!Array.isArray(draft.deliverables)) draft.deliverables = [];
   if(!THEMES[draft.theme]) draft.theme = "arena";
@@ -1194,6 +1210,9 @@ V.create = () => {
           <button type="button" role="radio" class="sp ${draft.boardStyle !== "game" ? "sel" : ""}" data-style="classic" aria-checked="${draft.boardStyle !== "game"}"><span class="sp-art classic"><i></i><i></i><i></i></span><span><b>Classic</b><small>Clean rows and scores. Calm and professional.</small></span></button>
           <button type="button" role="radio" class="sp ${draft.boardStyle === "game" ? "sel" : ""}" data-style="game" aria-checked="${draft.boardStyle === "game"}"><span class="sp-art game"><i></i><i></i><i></i></span><span><b>Gamified</b><small>Power bars, streaks, a live feed and animated objective hits.</small></span></button>
         </div></div>
+      <div class="stack" style="gap:8px"><span class="lbl">Sound</span>
+        <p class="muted" style="font-size:13px;margin-top:-4px">Background music and sound effects play on the leaderboard screen, using the ${draft.boardStyle === "game" ? "Gamified" : "Classic"} sound profile. Team and judge phones stay silent.</p>
+        <div class="panel" style="padding:14px">${soundSettingsHTML("cs", draft.sound || {on:true, music:.4, sfx:.8})}<button type="button" class="btn sm ghost" id="cs-preview" style="margin-top:10px">Play a 5-second preview</button></div></div>
       <div class="stack" style="gap:8px"><span class="lbl">Theme</span><p class="muted" style="font-size:13px;margin-top:-4px">Sets the fonts, colours and animated background on every screen.</p><div class="themes">${themeHTML}</div></div>
     </div>`,
     `<div class="fill"><div class="panel stack">
@@ -1224,6 +1243,7 @@ V.create = () => {
     const org = $app.querySelector("#org"), en = $app.querySelector("#ename");
     if(org) draft.orgName = org.value; if(en) draft.name = en.value;
     const hp = $app.querySelector("#hpw"); if(hp) draft.hostPw = hp.value;
+    const cs = readSoundSettings("cs"); if(cs) draft.sound = cs;
     const bf = $app.querySelector("#bfor"); if(bf) draft.buildingFor = bf.value;
     $app.querySelectorAll(".dname").forEach(el => draft.deliverables[+el.dataset.i].name = el.value);
     $app.querySelectorAll(".ddesc").forEach(el => draft.deliverables[+el.dataset.i].desc = el.value);
@@ -1245,6 +1265,8 @@ V.create = () => {
   on("#prevS", () => { sync(); S.viewCtx.step = step-1; V.create(); });
   on("#nextS", () => { sync(); S.viewCtx.step = step+1; V.create(); });
   onAll(".sp", el => { sync(); draft.boardStyle = el.dataset.style; V.create(); });
+  wireSoundSettings("cs", v => { draft.sound = v; });
+  on("#cs-preview", async () => { const ok = await Sound.preview(draft.boardStyle, readSoundSettings("cs") || draft.sound); if(!ok) toast("Sound isn't available on this device."); });
   onAll(".tcard", el => { sync(); draft.theme = el.dataset.k; draft.brandColor = THEMES[el.dataset.k].accent; V.create(); });
   onAll(".bc", el => { sync(); draft.brandColor = el.dataset.c; V.create(); });
   on("#custom", e => { sync(); draft.brandColor = e.target.value; V.create(); }, "change");
@@ -1268,6 +1290,7 @@ V.create = () => {
     const er = $app.querySelector("#er");
     const clean = {
       boardStyle: draft.boardStyle === "game" ? "game" : "classic",
+      sound: (() => { const v = draft.sound || {}; return {on: v.on !== false, music: Math.max(0, Math.min(1, +v.music || 0)), sfx: Math.max(0, Math.min(1, v.sfx === undefined ? .8 : +v.sfx))}; })(),
       theme: draft.theme, orgName: draft.orgName.trim(), brandColor: isHex(draft.brandColor) ? draft.brandColor : DEFAULT_BRAND,
       name: draft.name.trim() || "AI Hackathon",
       buildingFor: (draft.buildingFor||"").trim(),
@@ -1348,6 +1371,10 @@ V.hostLive = () => {
       <div class="hcard"><div class="head"><h3>Scores</h3><span class="state-pill ${S.revealed?"on":"warn"}">${S.revealed ? "revealed" : "hidden"}</span></div>
         <p class="sub">${S.revealed ? "Everyone can see the scores and each team's breakdown." : `${cards} judge scorecard${cards===1?"":"s"} in. Scores stay hidden from everyone until you reveal them.`}</p>
         <div class="acts"><button class="btn sm ${S.revealed ? "ghost" : "brand"}" id="reveal">${S.revealed ? "Hide scores again" : "Reveal scores"}</button></div></div>
+      <div class="hcard"><div class="head"><h3>Sound</h3><span class="state-pill ${eventSound().on ? "on" : ""}" id="hs-pill">${eventSound().on ? (isGame() ? "gamified profile" : "classic profile") : "off"}</span></div>
+        <p class="sub">Plays on the leaderboard screen. Changes reach the projector in a second or two.</p>
+        ${soundSettingsHTML("hs", eventSound())}
+        <div class="acts"><button class="btn sm ghost" id="hs-preview">Preview on this device</button></div></div>
       <div class="hcard"><div class="head"><h3>Event</h3><span class="state-pill ${S.ended?"":"on"}">${S.ended ? "ended" : "running"}</span></div>
         ${S.expiresAt ? `<p class="sub" style="${soon?"color:var(--bad)":""}">${soon?"⚠ ":""}Deletes automatically ${untilText(S.expiresAt)} (${fmtDate(S.expiresAt)}) ${S.ended ? "since it ended" : "if there's no activity"}.</p>` : ""}
         <div class="acts">${S.ended
@@ -1407,6 +1434,17 @@ V.hostLive = () => {
   on("#keep", () => keepEvent(S.code));
   tickTimers();
   on("#tmrbtn", timerModal);
+  let sndT;
+  wireSoundSettings("hs", v => {
+    const pill = $app.querySelector("#hs-pill"); if(pill){ pill.textContent = v.on ? (isGame() ? "gamified profile" : "classic profile") : "off"; pill.classList.toggle("on", v.on); }
+    clearTimeout(sndT); sndT = setTimeout(async () => {
+      const code = S.code, pw = hostPw(code); if(!pw) return;
+      const data = {...S.event, sound: v};
+      try{ if(!must(await S.sb.rpc("update_event", {p_code: code, p_password: pw, p_data: data}))){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return; } if(S.code === code) S.event = data; toast(v.on ? "Sound settings saved" : "Sound turned off on the leaderboard"); }
+      catch(e){ console.warn(e); toast("Couldn't save the sound settings. Try again.", {color:"#FF6B7A"}); }
+    }, 600);
+  });
+  on("#hs-preview", async () => { const ok = await Sound.preview(isGame() ? "game" : "classic", readSoundSettings("hs") || eventSound()); if(!ok) toast("Sound isn't available on this device."); });
   on("#reveal", () => {
     const counts = teams().map(t => `<li><b style="color:var(--text)">${esc(t.name)}</b> · ${judgesFor(t)} judge scorecard${judgesFor(t)===1?"":"s"}</li>`).join("");
     if(S.revealed) return modal({title:"Hide scores again?", body:`<p>The leaderboard and team screens go back to showing only how many judges have scored. You can reveal again any time.</p>`,
@@ -1654,7 +1692,7 @@ V.judgeScore = () => {
 
 /* ----- Leaderboard ----- */
 let boardState = null;
-function stopBoard(){ if(boardState){ boardState.wake?.release?.().catch(()=>{}); clearInterval(boardState.iv); clearTimeout(boardState.reorderT); boardState = null; } }
+function stopBoard(){ Sound.stopMusic(); Sound.duck(false); if(boardState){ boardState.wake?.release?.().catch(()=>{}); clearInterval(boardState.iv); clearTimeout(boardState.reorderT); boardState = null; } }
 V.board = () => {
   if(!needEvent()) return;
   stopBoard();
@@ -1678,12 +1716,21 @@ V.board = () => {
       <div class="stats" id="stats"></div>
     </div>
     <div id="stage" style="flex:1;display:flex;flex-direction:column"></div>
-    <div class="lb-tools"><button class="btn sm ghost" id="ex">← Exit leaderboard</button><button class="btn sm ghost" id="ht">Host tools</button><button class="btn sm" id="fs">Fullscreen</button></div></div>`;
+    <div class="lb-tools"><button class="btn sm ghost" id="ex">← Exit leaderboard</button><button class="btn sm ghost" id="ht">Host tools</button><button class="btn sm ghost snd" id="snd"></button><button class="btn sm" id="fs">Fullscreen</button></div></div>`;
+  on("#snd", async () => {
+    if(!Sound.unlocked()){ store.set("boardMute", false); await Sound.unlock(); }
+    else store.set("boardMute", !store.get("boardMute", false));
+    boardSoundSync();
+  });
   on("#ht", () => openHostTools());
   on("#fs", () => { try{ (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen())?.catch?.(()=>{}); }catch{} });
   on("#ex", () => { saveSession({role:null}); go("roles"); });
   boardRender(true); tickTimers();
   if(isGame()) boardState.iv = setInterval(gTick, 1000);
+  boardSoundSync(); Sound.startMusic();
+  // any tap on the projector screen turns sound on (browsers need one tap before audio can play)
+  const unlockOnce = async e => { if(e && e.target && e.target.closest && e.target.closest("#snd")) return; if(S.view === "board" && eventSound().on && !store.get("boardMute", false)){ await Sound.unlock(); boardSoundSync(); } };
+  document.addEventListener("pointerdown", unlockOnce, {once:true});
 };
 function boardUpdate(kind, prev, prevCounts){
   if(!boardState) return;
@@ -1692,7 +1739,7 @@ function boardUpdate(kind, prev, prevCounts){
   if(kind === "scores" && !S.revealed){
     if(S.scoresLoaded && prevCounts) ts.forEach((t,i) => {
       const before = prevCounts[t.id] || 0, now = S.scoreCounts[t.id] || 0;
-      if(now > before){ toast(`A judge scored <b>${esc(t.name)}</b> · ${now} scorecard${now===1?"":"s"} in`, {color: teamColor(t, i)}); boardState.pulse = t.id; }
+      if(now > before){ toast(`A judge scored <b>${esc(t.name)}</b> · ${now} scorecard${now===1?"":"s"} in`, {color: teamColor(t, i)}); boardState.pulse = t.id; Sound.play("judge"); }
     });
   } else if(kind === "scores"){
     for(const [k,s] of Object.entries(S.scores)){
@@ -1702,7 +1749,7 @@ function boardUpdate(kind, prev, prevCounts){
       boardState.known.add(sig);
       if(!S.scoresLoaded) continue;              // first load: no fanfare for existing scores
       const i = ts.findIndex(x => x.id === s.teamId); if(i < 0) continue;
-      toast(`<b>${esc(s.judge)}</b> scored ${esc(ts[i].name)} · ${s.total}`, {color: teamColor(ts[i], i)});
+      toast(`<b>${esc(s.judge)}</b> scored ${esc(ts[i].name)} · ${s.total}`, {color: teamColor(ts[i], i)}); Sound.play("judge");
       boardState.pulse = s.teamId;
     }
   }
@@ -1714,10 +1761,12 @@ function boardUpdate(kind, prev, prevCounts){
       if(S.progressLoaded && fresh.length){
         boardState.pops.set(t.id, {ids:new Set(fresh), text:(t.objectives.find(o => o.id === fresh[fresh.length-1])||{}).text || "", n:p.n, total:p.total});
         toast(`<b>${esc(t.name)}</b> completed “${esc((t.objectives.find(o => o.id === fresh[fresh.length-1])||{}).text||"an objective")}” · ${p.n}/${p.total}`, {color});
+        const crossed = p.total && [.5, .8, 1].some(m => prev.size / p.total < m && now.size / p.total >= m);
+        Sound.play(crossed ? "milestone" : "objective");
       }
       if(p.finished && !boardState.finished.has(t.id)){
         boardState.finished.add(t.id);
-        if(S.progressLoaded){ toast(`<b>${esc(t.name)}</b> submitted their build!`, {color, ms:6000}); [0,350,700].forEach((d,k) => setTimeout(() => burst(innerWidth*(.3+.2*k), innerHeight*.4, 150, [color]), d)); }
+        if(S.progressLoaded){ toast(`<b>${esc(t.name)}</b> submitted their build!`, {color, ms:6000}); Sound.play("submit"); [0,350,700].forEach((d,k) => setTimeout(() => burst(innerWidth*(.3+.2*k), innerHeight*.4, 150, [color]), d)); }
       } else if(!p.finished) boardState.finished.delete(t.id);
     });
   }
@@ -1725,6 +1774,7 @@ function boardUpdate(kind, prev, prevCounts){
 }
 function boardRender(first, eventEdit){
   const stage = document.getElementById("stage"); if(!stage || !boardState) return;
+  boardSoundSync();
   const ts = teams(), n = submittedCount();
   if(eventEdit){ const h = document.getElementById("lbt"); if(h) h.textContent = S.event.name; const br = document.getElementById("brief"); if(br) br.innerHTML = briefHTML(); }
   const objTotal = ts.reduce((a,t) => a + (t.objectives||[]).length, 0), objDone = ts.reduce((a,t) => a + doneSet(t).size, 0);
@@ -1806,7 +1856,7 @@ function boardRender(first, eventEdit){
   const leader = !hidden && !veiled && ranked[0] && ranked[0].sc.sum > 0 ? ranked[0].t.id : null;
   if(leader && boardState.leader && leader !== boardState.leader){
     const lt = ranked[0].t, lc = teamColor(lt, ranked[0].i);
-    toast(`<b>${esc(lt.name)}</b> takes the lead!`, {color: lc, ms:5500});
+    toast(`<b>${esc(lt.name)}</b> takes the lead!`, {color: lc, ms:5500}); Sound.play("overtake");
     setTimeout(() => { const el = boardState?.rows.get(leader); if(el){ const r = el.getBoundingClientRect(); burst(r.left + r.width*.85, r.top + r.height/2, 160, [lc]); } }, 750);
   } else if(boardState.pulse){
     const el = boardState.rows.get(boardState.pulse);
@@ -1913,7 +1963,7 @@ function gReorder(order, first){
     if(Math.abs(dy) > 1 && !REDUCED) el.animate([{transform:`translateY(${dy}px)`},{transform:"none"}], {duration:850, easing:"cubic-bezier(.2,.9,.25,1.1)"});
     const d = el.querySelector(".gdelta");
     if(move){ d.className = "gdelta " + (move > 0 ? "up" : "down"); d.innerHTML = (move > 0 ? GICON.up : GICON.down) + Math.abs(move); clearTimeout(el._dT); el._dT = setTimeout(() => { d.className = "gdelta"; d.innerHTML = ""; }, 5000); }
-    if(move > 0 && !st.revealing){ const t = teams().find(x => x.id === id); const passed = teams().find(x => x.id === current[k]); gFeed({tc: teamColor(t, teams().indexOf(t)), icon:"up", title:`${t.name} moves up to #${k+1}`, detail: move > 1 ? `Passed ${move} teams` : `Passed ${passed ? passed.name : "a team"}`}); }
+    if(move > 0 && !st.revealing){ Sound.play("overtake"); const t = teams().find(x => x.id === id); const passed = teams().find(x => x.id === current[k]); gFeed({tc: teamColor(t, teams().indexOf(t)), icon:"up", title:`${t.name} moves up to #${k+1}`, detail: move > 1 ? `Passed ${move} teams` : `Passed ${passed ? passed.name : "a team"}`}); }
   });
 }
 function gScheduleReorder(){ const st = boardState; if(!st) return; clearTimeout(st.reorderT); st.reorderT = setTimeout(() => { if(boardState === st && st.busy === 0) gReorder(gOrder()); else gScheduleReorder(); }, REDUCED ? 0 : 900); }
@@ -1961,6 +2011,7 @@ function gUpdate(kind, prevCounts){
           const sk = st.streak.get(t.id) || {n:0, last:0}, nowT = Date.now();
           sk.n = nowT - sk.last < 25000 ? sk.n + 1 : 1; sk.last = nowT; st.streak.set(t.id, sk);
           gFeed({tc:color, icon:"obj", title:`${t.name} cleared an objective`, detail:`${text} · ${count}/${total}`});
+          if(sk.n === 3 || sk.n === 5) setTimeout(() => Sound.play("streak"), 900);
           if(sk.n === 3 || sk.n === 5) gFeed({tc:"#FF8A3D", icon:"bolt", title:`${t.name} is on a ${sk.n}× streak`, detail:"Objectives in quick succession", big:true});
           const ms = [[.5,"HALFWAY"],[.8,"FINAL STRETCH"],[1,"ALL OBJECTIVES"]].find(([m]) => total && (count-1)/total < m && count/total >= m);
           if(ms) gFeed({tc:color, icon:"flag", title:`${t.name}: ${ms[1].toLowerCase()}`, detail:`${Math.round(count/total*100)}% of objectives complete`, big:true});
@@ -2010,6 +2061,7 @@ async function gAnimObjective(t, text, milestone, fast){
   st.shownDone.set(t.id, k + 1);
   gPaint(el, t, gOrder().indexOf(t.id));
   const b = el.querySelectorAll(".gsegs i")[k]; b.classList.remove("ignite"); void b.offsetWidth; b.classList.add("ignite");
+  Sound.play(milestone ? "milestone" : "objective");
   gSparks(power, x, y, 10);
   if(milestone) gStamp(el, milestone);
   await gWait(fast ? 260 : 900);
@@ -2020,6 +2072,7 @@ async function gAnimJudge(t, fast){
   st.shownJ.set(t.id, k + 1); gPaint(el, t, gOrder().indexOf(t.id));
   const pip = el.querySelectorAll(".gpips i")[k]; if(pip){ pip.classList.remove("pop"); void pip.offsetWidth; pip.classList.add("pop"); }
   const q = el.querySelector(".gscore"); q.classList.remove("shake"); void q.offsetWidth; q.classList.add("shake");
+  Sound.play("judge");
   gShowEvent(el, `SCORECARD IN <b>${k+1} judge${k ? "s" : ""} in</b>`, 2200);
   await gWait(fast ? 220 : 700);
 }
@@ -2029,7 +2082,7 @@ async function gAnimSubmit(t){
   gSweep(el);
   const segs = el.querySelector(".gsegs"); segs.classList.remove("full"); void segs.offsetWidth; segs.classList.add("full");
   [...segs.children].forEach((b,k) => b.style.setProperty("--k", k));
-  gShowEvent(el, `BUILD SUBMITTED <b>locked in</b>`, 3200); gStamp(el, "SUBMITTED");
+  gShowEvent(el, `BUILD SUBMITTED <b>locked in</b>`, 3200); gStamp(el, "SUBMITTED"); Sound.play("submit");
   await gWait(1400);
 }
 
@@ -2058,6 +2111,200 @@ function gTick(){
   const r = document.getElementById("grate"); if(r) r.textContent = st.recent.length ? `${st.recent.length} UPDATE${st.recent.length === 1 ? "" : "S"} / MIN` : "";
 }
 
+/* ---------- sound: generated live with Web Audio, two profiles ---------- */
+const Sound = (() => {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx = null, out, musicBus, sfxBus, profile = "classic", levels = {on:true, music:.4, sfx:.8};
+  let localMute = false, duckLevel = 1, musicWanted = false, sched = null, nextT = 0, step = 0, noiseBuf = null, voices = 0;
+  const last = {};
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const curve = v => Math.pow(Math.max(0, Math.min(1, v)), 2);
+
+  function ensure(){
+    if(ctx) return true;
+    if(!AC) return false;
+    try{ ctx = new AC(); }catch{ return false; }
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .005; comp.release.value = .2; comp.connect(ctx.destination);
+    out = ctx.createGain(); out.connect(comp);
+    musicBus = ctx.createGain(); musicBus.connect(out);
+    sfxBus = ctx.createGain(); sfxBus.connect(out);
+    applyGains(true);
+    return true;
+  }
+  function applyGains(instant){
+    if(!ctx) return;
+    const t = ctx.currentTime, on = levels.on && !localMute, k = instant ? .01 : .25;
+    out.gain.setTargetAtTime(on ? 1 : 0, t, instant ? .01 : .12);
+    musicBus.gain.setTargetAtTime(curve(levels.music) * .5 * duckLevel, t, k);
+    sfxBus.gain.setTargetAtTime(curve(levels.sfx) * .9, t, .05);
+  }
+  function noise(){
+    if(noiseBuf) return noiseBuf;
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+  /* one synth voice: oscillator -> optional filter -> envelope -> bus */
+  function tone({f, f2, type = "sine", t = ctx.currentTime, a = .005, d = .3, s = 0, hold = 0, r = .2, gain = .2, bus = sfxBus, lp, lp2, q = .7, detune = 0}){
+    if(voices > 40) return;
+    const o = ctx.createOscillator(), g = ctx.createGain(); let node = o;
+    o.type = type; o.frequency.setValueAtTime(f, t); o.detune.value = detune;
+    if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + a + d);
+    if(lp){ const fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.setValueAtTime(lp, t); fl.Q.value = q; if(lp2) fl.frequency.exponentialRampToValueAtTime(lp2, t + a + d); node.connect(fl); node = fl; }
+    node.connect(g); g.connect(bus);
+    const end = t + a + d + hold + r;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + a);
+    g.gain.setTargetAtTime(gain * s, t + a, d / 3 || .01);
+    g.gain.setTargetAtTime(0, t + a + d + hold, r / 4 || .01);
+    o.start(t); o.stop(end + .1); voices++; o.onended = () => { voices--; g.disconnect(); };
+  }
+  function burst({t = ctx.currentTime, dur = .1, gain = .2, type = "highpass", f = 6000, f2, q = .8, bus = sfxBus, a = .002}){
+    if(voices > 40) return;
+    const src = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = noise(); fl.type = type; fl.frequency.setValueAtTime(f, t); fl.Q.value = q; if(f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    src.connect(fl); fl.connect(g); g.connect(bus);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + a); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
+    src.start(t, Math.random()); src.stop(t + dur + .05); voices++; src.onended = () => { voices--; g.disconnect(); };
+  }
+  const bell = (m, t, gain = .16, bus = sfxBus, dec = 1.4) => {
+    const f = mtof(m);
+    tone({f, t, a:.003, d:dec, gain, bus});
+    tone({f:f * 2.76, t, a:.002, d:dec * .45, gain:gain * .28, bus});
+    tone({f:f * 5.4, t, a:.001, d:dec * .2, gain:gain * .12, bus});
+  };
+  const kick = (t, g = .5) => tone({f:140, f2:42, t, a:.002, d:.16, r:.05, gain:g, bus:musicBus});
+  const hat = (t, g = .06) => burst({t, dur:.045, gain:g, f:7500, bus:musicBus});
+  const clap = (t, g = .12) => burst({t, dur:.14, gain:g, type:"bandpass", f:1500, q:1.2, bus:musicBus});
+
+  /* ---- sound effects ---- */
+  const SFX = {
+    classic: {
+      objective(t){ bell(79, t); bell(84, t + .1, .14); },
+      milestone(t){ [72, 76, 79, 84].forEach((m, k) => bell(m, t + k * .08, .14)); },
+      streak(t){ [76, 79, 84].forEach((m, k) => bell(m, t + k * .07, .12)); },
+      judge(t){ tone({f:1250, f2:880, t, a:.001, d:.07, gain:.16}); burst({t, dur:.03, gain:.05, f:3000}); },
+      submit(t){ [60, 64, 67, 72].forEach(m => tone({f:mtof(m), type:"triangle", t, a:.06, d:1.4, s:.15, r:1, gain:.07})); bell(84, t + .05, .12, sfxBus, 2); },
+      overtake(t){ tone({f:520, f2:780, t, a:.02, d:.25, gain:.1}); },
+      tick(t){ tone({f:1000, t, a:.001, d:.04, gain:.08}); },
+      timesup(t){ [1, 2.41, 3.93, 5.2].forEach((p, k) => tone({f:98 * p, t, a:.004, d:3.5 - k * .6, gain:[.32, .14, .08, .05][k]})); },
+      riser(t, dur){ burst({t, dur, gain:.05, type:"lowpass", f:300, f2:4000, a:dur * .9}); tone({f:220, f2:440, t, a:dur * .9, d:.1, gain:.05, type:"triangle"}); },
+      fanfare(t){ [60, 64, 67, 72, 76].forEach((m, k) => bell(m, t + k * .09, .13, sfxBus, 2.2)); [48, 60, 64, 67].forEach(m => tone({f:mtof(m), type:"triangle", t:t + .45, a:.08, d:2.2, s:.2, r:1.2, gain:.06})); }
+    },
+    game: {
+      objective(t){ [72, 76, 79, 84].forEach((m, k) => tone({f:mtof(m), type:"square", t:t + k * .045, a:.002, d:.07, gain:.07, lp:4200})); burst({t:t + .16, dur:.18, gain:.05, f:9000}); },
+      milestone(t){ tone({f:260, f2:1400, type:"sawtooth", t, a:.01, d:.34, gain:.09, lp:600, lp2:6000}); [60, 64, 67, 72].forEach(m => tone({f:mtof(m), type:"square", t:t + .34, a:.003, d:.45, gain:.045, lp:3500})); },
+      streak(t){ [72, 74, 76, 79, 81, 84].forEach((m, k) => tone({f:mtof(m), type:"square", t:t + k * .035, a:.002, d:.05, gain:.06, lp:5000})); },
+      judge(t){ tone({f:660, type:"square", t, a:.002, d:.05, gain:.07, lp:3000}); tone({f:990, type:"square", t:t + .07, a:.002, d:.08, gain:.07, lp:3000}); },
+      submit(t){ [57, 60, 64, 69].forEach(m => { tone({f:mtof(m), type:"sawtooth", t, a:.005, d:.9, s:.1, r:.5, gain:.05, lp:400, lp2:5000, detune:-6}); tone({f:mtof(m + 12), type:"sawtooth", t, a:.005, d:.9, r:.4, gain:.025, lp:400, lp2:5000, detune:6}); }); burst({t, dur:.6, gain:.08, type:"bandpass", f:500, f2:4000, q:1}); kick(t, .4); },
+      overtake(t){ burst({t, dur:.35, gain:.07, type:"bandpass", f:500, f2:3200, q:1.4}); tone({f:880, f2:1320, type:"square", t:t + .22, a:.003, d:.09, gain:.05, lp:4000}); },
+      tick(t){ tone({f:1500, type:"square", t, a:.001, d:.025, gain:.05, lp:5000}); },
+      timesup(t){ [110, 164.8, 220].forEach(f => tone({f, type:"sawtooth", t, a:.01, d:.9, s:.6, hold:.2, r:.3, gain:.08, lp:1300})); kick(t, .5); },
+      riser(t, dur){ burst({t, dur, gain:.07, type:"highpass", f:400, f2:6000, a:dur * .95}); tone({f:110, f2:880, type:"sawtooth", t, a:dur * .95, d:.05, gain:.05, lp:500, lp2:5000}); for(let k = 0; k < 16; k++){ const tt = t + dur * (1 - Math.pow(.86, k)); burst({t:tt, dur:.04, gain:.03 + k * .003, f:7500}); } },
+      fanfare(t){ const chord = [69, 73, 76, 81]; [0, .16, .32].forEach((dt, k) => chord.forEach(m => tone({f:mtof(m), type:"sawtooth", t:t + dt, a:.004, d:k === 2 ? 1.6 : .12, s:k === 2 ? .3 : 0, r:.6, gain:.04, lp:2500}))); kick(t, .5); kick(t + .32, .5); burst({t:t + .32, dur:.8, gain:.05, f:8000}); }
+    }
+  };
+  function play(name, arg){
+    if(!ctx || ctx.state !== "running" || !levels.on || localMute) return;
+    const now = ctx.currentTime, minGap = name === "tick" ? .5 : .11;
+    if(last[name] && now - last[name] < minGap) return;     // a burst of updates never stacks into noise
+    last[name] = now;
+    const fx = (SFX[profile] || SFX.classic)[name]; if(fx) fx(now + .01, arg);
+  }
+
+  /* ---- background music ---- */
+  const CLASSIC = {bpm:70, div:2, chords:[[48,55,59,64],[45,52,55,60],[41,53,57,64],[43,50,55,59]], len:16};
+  const GAME = {bpm:112, div:4, chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]], roots:[45,41,48,43], len:16};
+  function schedule(st, t){
+    if(profile === "game"){
+      const sd = 60 / GAME.bpm / GAME.div, bar = Math.floor(st / GAME.len), s = st % GAME.len, ci = bar % 4, ch = GAME.chords[ci], root = GAME.roots[ci];
+      const section = Math.floor(bar / 8) % 2;                                       // light / full sections so it does not get tiring
+      if(s % 4 === 0) kick(t, .32);
+      if(s % 4 === 2) hat(t, .05);
+      if(section && (s === 4 || s === 12)) clap(t, .09);
+      if(s % 2 === 0) tone({f:mtof(root + (s % 4 === 2 ? 12 : 0)), type:"sawtooth", t, a:.004, d:sd * 1.6, r:.05, gain:.09, lp:520, bus:musicBus});
+      const arp = [0, 1, 2, 1][s % 4], oct = s % 8 < 4 ? 12 : 24;
+      if(section || s % 2 === 0) tone({f:mtof(ch[arp] + oct), type:"square", t, a:.002, d:sd * .9, gain:.022, lp:2600, bus:musicBus});
+      if(s === 0) ch.forEach(m => tone({f:mtof(m), type:"sawtooth", t, a:.4, d:sd * 14, s:.6, r:.6, gain:.012, lp:1100, bus:musicBus, detune:(m % 2 ? 7 : -7)}));
+      return sd;
+    }
+    const sd = 60 / CLASSIC.bpm / CLASSIC.div, block = Math.floor(st / CLASSIC.len), s = st % CLASSIC.len, ch = CLASSIC.chords[block % 4];
+    if(s === 0) ch.forEach((m, k) => { tone({f:mtof(m), type:"triangle", t, a:1.6, d:sd * 14, s:.7, r:2.4, gain:.035, bus:musicBus, lp:1600, detune:k % 2 ? 5 : -5}); tone({f:mtof(m + 12), t, a:2, d:sd * 12, s:.5, r:2, gain:.012, bus:musicBus}); });
+    if([0, 3, 6, 10, 13].includes(s) && Math.random() < .8){ const m = ch[Math.floor(Math.random() * ch.length)] + 24; tone({f:mtof(m), type:"triangle", t, a:.004, d:1.6, gain:.03, bus:musicBus, lp:3200}); }
+    return sd;
+  }
+  function startMusic(){
+    musicWanted = true;
+    if(!ctx || ctx.state !== "running" || sched) return;
+    nextT = ctx.currentTime + .08; step = 0;
+    sched = setInterval(() => { if(!ctx) return; while(nextT < ctx.currentTime + .15){ const sd = schedule(step, nextT); nextT += sd; step++; } }, 30);
+  }
+  function stopMusic(){ musicWanted = false; clearInterval(sched); sched = null; }
+  async function unlock(){
+    if(!ensure()) return false;
+    try{ if(ctx.state !== "running") await ctx.resume(); }catch{}
+    if(ctx.state === "running" && musicWanted && !sched) startMusic();
+    return ctx.state === "running";
+  }
+  return {
+    supported: !!AC,
+    unlocked: () => !!ctx && ctx.state === "running",
+    unlock, play, startMusic, stopMusic,
+    setProfile(p){ p = p === "game" ? "game" : "classic"; if(p === profile) return; profile = p; if(sched){ clearInterval(sched); sched = null; if(musicWanted) startMusic(); } },
+    setLevels(l){ levels = {...levels, ...l}; applyGains(); },
+    setLocalMute(m){ localMute = !!m; applyGains(); },
+    duck(on){ duckLevel = on ? .12 : 1; applyGains(); },
+    levels: () => ({...levels}),
+    async preview(p, l){
+      const keep = {profile, levels:{...levels}, wanted:musicWanted, mute:localMute};
+      if(!(await unlock())) return false;
+      profile = p === "game" ? "game" : "classic"; levels = {...levels, ...l, on:true}; localMute = false; applyGains(true);
+      startMusic(); setTimeout(() => play("objective"), 400); setTimeout(() => play("milestone"), 1500); setTimeout(() => play("judge"), 2600);
+      setTimeout(() => { stopMusic(); profile = keep.profile; levels = keep.levels; localMute = keep.mute; applyGains(); if(keep.wanted) startMusic(); }, 5200);
+      return true;
+    }
+  };
+})();
+const eventSound = () => { const d = S.event && S.event.sound; return {on: !d || d.on !== false, music: d && typeof d.music === "number" ? d.music : .4, sfx: d && typeof d.sfx === "number" ? d.sfx : .8}; };
+function boardSoundSync(){
+  Sound.setProfile(isGame() ? "game" : "classic");
+  Sound.setLevels(eventSound());
+  Sound.setLocalMute(store.get("boardMute", false));
+  const b = document.getElementById("snd"); if(!b) return;
+  const ev = eventSound();
+  const label = !Sound.supported ? "No sound on this device" : !ev.on ? "Sound off (host)" : !Sound.unlocked() ? "Enable sound" : store.get("boardMute", false) ? "Sound off" : "Sound on";
+  // only touch the button when its state changes, so a tap is never lost to a refresh
+  const icon = !ev.on || store.get("boardMute", false) || !Sound.unlocked() ? "off" : "on";
+  if(b.dataset.k !== label){ b.dataset.k = label; b.innerHTML = `${ICONS_SND[icon]}<span>${label}</span>`; }
+  b.classList.toggle("brand", Sound.supported && ev.on && !Sound.unlocked());
+  b.disabled = !Sound.supported || !ev.on;
+}
+const ICONS_SND = {
+  on:`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>`,
+  off:`<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>`
+};
+function soundSettingsHTML(prefix, snd){
+  const pct = v => Math.round(v * 100);
+  return `<div class="sndset">
+    <label class="sw"><input type="checkbox" id="${prefix}-on" ${snd.on ? "checked" : ""}><span class="sw-ui" aria-hidden="true"></span><span>Sound on the leaderboard screen</span></label>
+    <div class="sl"><label for="${prefix}-music">Music</label><input type="range" id="${prefix}-music" min="0" max="100" step="5" value="${pct(snd.music)}" ${snd.on ? "" : "disabled"}><output id="${prefix}-music-v">${pct(snd.music)}%</output></div>
+    <div class="sl"><label for="${prefix}-sfx">Sound effects</label><input type="range" id="${prefix}-sfx" min="0" max="100" step="5" value="${pct(snd.sfx)}" ${snd.on ? "" : "disabled"}><output id="${prefix}-sfx-v">${pct(snd.sfx)}%</output></div>
+  </div>`;
+}
+function readSoundSettings(prefix){
+  const on = document.getElementById(prefix + "-on"); if(!on) return null;
+  return {on: on.checked, music: +document.getElementById(prefix + "-music").value / 100, sfx: +document.getElementById(prefix + "-sfx").value / 100};
+}
+function wireSoundSettings(prefix, onChange){
+  ["on", "music", "sfx"].forEach(k => {
+    const el = document.getElementById(prefix + "-" + k); if(!el) return;
+    el.addEventListener("input", () => {
+      const v = readSoundSettings(prefix);
+      ["music", "sfx"].forEach(x => { const o = document.getElementById(`${prefix}-${x}-v`); if(o) o.textContent = Math.round(v[x] * 100) + "%"; const r = document.getElementById(`${prefix}-${x}`); if(r) r.disabled = !v.on; });
+      onChange(v);
+    });
+  });
+}
+
 /* ---------- countdown timer ---------- */
 async function syncClock(){
   try{ const t0 = Date.now(); const r = await S.sb.rpc("server_now"); const t1 = Date.now(); if(!r.error && r.data) S.clockOffset = new Date(r.data).getTime() - (t0 + t1)/2; }catch{}
@@ -2080,11 +2327,12 @@ function timerHTML(size){
   const label = (S.timer && S.timer.label) || "Time left";
   return `<div class="tmr ${size}" data-tmr><div class="lab"><span>${esc(label)}</span><span data-tmr-status></span></div><div class="digits" data-tmr-digits></div><div class="tbar"><i data-tmr-bar></i></div></div>`;
 }
-let lastDoneKey = null;
+let lastDoneKey = null, lastTickSec = null;
 function timesUpOverlay(label){
   document.querySelector(".tu-ov")?.remove();
   const ms = 4500, ov = document.createElement("div");
   ov.className = "tu-ov"; ov.setAttribute("role", "alert"); ov.style.setProperty("--dur", ms + "ms");
+  Sound.play("timesup");
   ov.innerHTML = `<div class="in"><span class="k">${esc(label)} has ended</span><h1>Time's up</h1><span class="z">00:00</span><div class="drain"><i></i></div></div>`;
   document.body.appendChild(ov);
   const close = () => { if(!ov.isConnected) return; ov.classList.add("out"); setTimeout(() => ov.remove(), 700); };
@@ -2100,6 +2348,7 @@ function tickTimers(force){
     }
   }
   if(st.status !== "done" && S.timer && S.timer.endsAt && lastDoneKey === null) lastDoneKey = "";
+  if(S.view === "board" && st.status === "running" && st.left <= 10500){ const sec = Math.ceil(st.left / 1000); if(sec !== lastTickSec && sec > 0){ lastTickSec = sec; Sound.play("tick"); } }
   els.forEach(el => {
     el.classList.toggle("idle", st.status === "idle");
     el.closest(".tmr-panel")?.classList.toggle("idle", st.status === "idle");
@@ -2259,7 +2508,9 @@ function boardReveal(){
   document.querySelector(".race-ov")?.remove();
   const ov = document.createElement("div"); ov.className = "race-ov";
   ov.innerHTML = `<div class="race-stage"></div>`; document.body.appendChild(ov);
+  Sound.duck(true); Sound.play("riser", 7.2);
   const finish = () => {
+    Sound.duck(false);
     ov.style.transition = "opacity .6s"; ov.style.opacity = 0;
     setTimeout(() => { ov.remove(); if(!boardState) return; boardState.revealing = false; boardState.shown.forEach((v,k) => boardState.shown.set(k, 0)); boardState.mode = null; boardRender(false); }, 550);
   };
@@ -2267,6 +2518,7 @@ function boardReveal(){
     const top = ranked.filter(r => winners.has(r.t.id)), w = top[0];
     if(!w){ finish(); return; }
     const tie = top.length > 1;
+    Sound.play("fanfare");
     ov.style.setProperty("--tc", teamColor(w.t, w.i));
     ov.querySelector(".race-stage").innerHTML = `<div class="win-panel" style="--tc:${esc(teamColor(w.t, w.i))}">
       <span class="kick">${tie ? "Tied for first" : "Winner"}</span>

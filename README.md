@@ -44,3 +44,12 @@ Create and Edit start with **Look**: pick the theme and the leaderboard style.
 - **Gamified**: slanted power bars, a live feed of every event, and animated objective hits (a light streak hits the next block, which ignites with sparks), plus streaks, milestone stamps, overtake arrows and judge markers. Each team's row animates on its own, so bursts of updates play at the same time; updates to the same team play in order and speed up if they pile up. The feed shows the newest 8 events.
 
 In both styles, objective blocks fill from the left no matter which objectives a team ticks.
+
+## Sound
+
+Music and sound effects are generated live in the browser (no audio files) and play **only on the leaderboard screen**, so team and judge phones stay silent.
+
+- **Two profiles that follow the leaderboard style.** Classic: a slow ambient pad with soft chimes. Gamified: a 112 bpm synth track with arcade-style effects.
+- **Effects:** objective cleared, milestone, streak (gamified), judge scorecard, build submitted, overtake / new leader, the last 10 seconds of the countdown, time's up, and the reveal (a riser during the race, then a winner fanfare). Music dips during the reveal. Repeated effects are rate-limited so bursts don't turn into noise.
+- **Settings:** Create/Edit → Look, or Host tools → Run event → Sound. Turn sound on/off and set Music and Sound effects volume; changes reach the projector within a second or two. "Preview" plays 5 seconds on the device you're holding.
+- **On the projector:** browsers need one tap before audio can play, so the leaderboard shows an **Enable sound** button (any tap on the screen also works). The same button mutes or unmutes that screen.
