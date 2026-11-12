@@ -430,6 +430,23 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .sl output{font-family:var(--f-mono);font-size:12px;color:var(--text);text-align:right}
 .lb-tools .snd{display:inline-flex;align-items:center;gap:8px}
 @media (max-width:480px){.sl{grid-template-columns:90px minmax(0,1fr) 40px}}
+/* Host tools: Sound page */
+.tabs{grid-template-columns:repeat(4,1fr)}
+@media (max-width:420px){.tabs button{font-size:12px;padding:0 2px}}
+.profpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pp{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border-radius:calc(var(--r) * .7);border:2px solid var(--line-2);background:var(--field)}
+.pp b{font-size:14px}.pp small{font-size:12px;color:var(--muted);line-height:1.35}
+.pp.sel{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 8%,var(--field))}
+.pp:disabled,.fxb:disabled{opacity:.45}
+.swsub{display:block;font-weight:500;font-size:12px;color:var(--muted);margin-top:2px}
+.hcard .sw{align-items:flex-start}
+.hcard .sw .sw-ui{margin-top:1px}
+.fxgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.fxb{min-height:40px;padding:8px 10px;border-radius:calc(var(--r) * .6);border:1px solid var(--line-2);background:var(--panel-2);font-weight:600;font-size:13px;text-align:left;transition:border-color .2s}
+.fxb:hover{border-color:var(--brand)}
+.fxb.hitfx{animation:fxhit .45s var(--spring)}
+@keyframes fxhit{40%{transform:scale(.95);border-color:var(--brand);background:color-mix(in srgb,var(--brand) 18%,var(--panel-2))}}
+@media (max-width:560px){.profpick{grid-template-columns:1fr}}
 /* Leaderboard style picker */
 .stylepick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sp{display:flex;gap:12px;align-items:center;text-align:left;padding:12px;border-radius:calc(var(--r) * .8);border:2px solid var(--line-2);background:var(--field);transition:border-color .2s,transform .2s var(--ease)}
@@ -442,7 +459,7 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .sp-art.game i{height:8px;border-radius:0;transform:skewX(-20deg);background:linear-gradient(90deg,var(--brand) var(--w),var(--line-2) var(--w))}
 .sp-art.game i:nth-child(1){--w:85%}.sp-art.game i:nth-child(2){--w:60%}.sp-art.game i:nth-child(3){--w:35%}
 @media (max-width:480px){.stylepick{grid-template-columns:1fr}}
-/* ---------- Gamified leaderboard ---------- */
+/* ---------- Arcade leaderboard ---------- */
 .lb.game .joinbox,.lb.game .lb-timer .tmr{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));border-radius:0}
 .lb.game .stats{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
 .lb.game .stats > div{flex-direction:row;align-items:center;gap:10px;padding:8px 14px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 60%,transparent)}
@@ -991,6 +1008,7 @@ function route(){
 }
 function render(){
   clearLand();
+  if(S.view !== "board" && S.view !== "hostLive" && Sound.musicOn()) Sound.stopMusic();
   if(S.view === "hostLive" && !hostPw(S.code)){ saveSession({role:null}); S.view = "roles"; S.viewCtx = {}; setTimeout(() => openHostTools(), 50); }
   if(S.view === "create" && S.viewCtx.edit && !hostPw(S.code)){ S.view = "roles"; S.viewCtx = {}; setTimeout(() => openHostTools(), 50); }
   if(!inHostArea()) lockHost();
@@ -1208,10 +1226,10 @@ V.create = () => {
       <div class="stack" style="gap:8px"><span class="lbl">Leaderboard style</span>
         <div class="stylepick" role="radiogroup" aria-label="Leaderboard style">
           <button type="button" role="radio" class="sp ${draft.boardStyle !== "game" ? "sel" : ""}" data-style="classic" aria-checked="${draft.boardStyle !== "game"}"><span class="sp-art classic"><i></i><i></i><i></i></span><span><b>Classic</b><small>Clean rows and scores. Calm and professional.</small></span></button>
-          <button type="button" role="radio" class="sp ${draft.boardStyle === "game" ? "sel" : ""}" data-style="game" aria-checked="${draft.boardStyle === "game"}"><span class="sp-art game"><i></i><i></i><i></i></span><span><b>Gamified</b><small>Power bars, streaks, a live feed and animated objective hits.</small></span></button>
+          <button type="button" role="radio" class="sp ${draft.boardStyle === "game" ? "sel" : ""}" data-style="game" aria-checked="${draft.boardStyle === "game"}"><span class="sp-art game"><i></i><i></i><i></i></span><span><b>Arcade</b><small>Power bars, streaks, combos, a live feed and animated objective hits.</small></span></button>
         </div></div>
       <div class="stack" style="gap:8px"><span class="lbl">Sound</span>
-        <p class="muted" style="font-size:13px;margin-top:-4px">Background music and sound effects play on the leaderboard screen, using the ${draft.boardStyle === "game" ? "Gamified" : "Classic"} sound profile. Team and judge phones stay silent.</p>
+        <p class="muted" style="font-size:13px;margin-top:-4px">Background music and sound effects play on the leaderboard screen, using the ${draft.boardStyle === "game" ? "Arcade" : "Classic"} sound profile. Fine-tune it later in Host tools → Sound. Team and judge phones stay silent.</p>
         <div class="panel" style="padding:14px">${soundSettingsHTML("cs", draft.sound || {on:true, music:.4, sfx:.8})}<button type="button" class="btn sm ghost" id="cs-preview" style="margin-top:10px">Play a 5-second preview</button></div></div>
       <div class="stack" style="gap:8px"><span class="lbl">Theme</span><p class="muted" style="font-size:13px;margin-top:-4px">Sets the fonts, colours and animated background on every screen.</p><div class="themes">${themeHTML}</div></div>
     </div>`,
@@ -1243,7 +1261,7 @@ V.create = () => {
     const org = $app.querySelector("#org"), en = $app.querySelector("#ename");
     if(org) draft.orgName = org.value; if(en) draft.name = en.value;
     const hp = $app.querySelector("#hpw"); if(hp) draft.hostPw = hp.value;
-    const cs = readSoundSettings("cs"); if(cs) draft.sound = cs;
+    const cs = readSoundSettings("cs"); if(cs) draft.sound = {...draft.sound, ...cs};
     const bf = $app.querySelector("#bfor"); if(bf) draft.buildingFor = bf.value;
     $app.querySelectorAll(".dname").forEach(el => draft.deliverables[+el.dataset.i].name = el.value);
     $app.querySelectorAll(".ddesc").forEach(el => draft.deliverables[+el.dataset.i].desc = el.value);
@@ -1265,8 +1283,13 @@ V.create = () => {
   on("#prevS", () => { sync(); S.viewCtx.step = step-1; V.create(); });
   on("#nextS", () => { sync(); S.viewCtx.step = step+1; V.create(); });
   onAll(".sp", el => { sync(); draft.boardStyle = el.dataset.style; V.create(); });
-  wireSoundSettings("cs", v => { draft.sound = v; });
-  on("#cs-preview", async () => { const ok = await Sound.preview(draft.boardStyle, readSoundSettings("cs") || draft.sound); if(!ok) toast("Sound isn't available on this device."); });
+  wireSoundSettings("cs", v => { draft.sound = {...draft.sound, ...v}; });
+  on("#cs-preview", async () => {
+    const v = readSoundSettings("cs") || draft.sound, p = draft.boardStyle === "game" ? "game" : "classic";
+    if(!(await Sound.previewMusic(p, {music: Math.max(v.music, .25), sfx: Math.max(v.sfx, .3)}))){ toast("Sound isn't available on this device."); return; }
+    [["objective", 700], ["objective", 1000], ["objective", 1300], ["milestone", 2300], ["judge", 3600]].forEach(([n, ms]) => setTimeout(() => Sound.play(n), ms));
+    setTimeout(() => { if(S.view === "create") Sound.stopMusic(); }, 6000);
+  });
   onAll(".tcard", el => { sync(); draft.theme = el.dataset.k; draft.brandColor = THEMES[el.dataset.k].accent; V.create(); });
   onAll(".bc", el => { sync(); draft.brandColor = el.dataset.c; V.create(); });
   on("#custom", e => { sync(); draft.brandColor = e.target.value; V.create(); }, "change");
@@ -1290,7 +1313,7 @@ V.create = () => {
     const er = $app.querySelector("#er");
     const clean = {
       boardStyle: draft.boardStyle === "game" ? "game" : "classic",
-      sound: (() => { const v = draft.sound || {}; return {on: v.on !== false, music: Math.max(0, Math.min(1, +v.music || 0)), sfx: Math.max(0, Math.min(1, v.sfx === undefined ? .8 : +v.sfx))}; })(),
+      sound: (() => { const v = {...SOUND_DEFAULTS, ...(draft.sound || {})}; return {...v, on: v.on !== false, music: Math.max(0, Math.min(1, +v.music || 0)), sfx: Math.max(0, Math.min(1, +v.sfx))}; })(),
       theme: draft.theme, orgName: draft.orgName.trim(), brandColor: isHex(draft.brandColor) ? draft.brandColor : DEFAULT_BRAND,
       name: draft.name.trim() || "AI Hackathon",
       buildingFor: (draft.buildingFor||"").trim(),
@@ -1371,10 +1394,6 @@ V.hostLive = () => {
       <div class="hcard"><div class="head"><h3>Scores</h3><span class="state-pill ${S.revealed?"on":"warn"}">${S.revealed ? "revealed" : "hidden"}</span></div>
         <p class="sub">${S.revealed ? "Everyone can see the scores and each team's breakdown." : `${cards} judge scorecard${cards===1?"":"s"} in. Scores stay hidden from everyone until you reveal them.`}</p>
         <div class="acts"><button class="btn sm ${S.revealed ? "ghost" : "brand"}" id="reveal">${S.revealed ? "Hide scores again" : "Reveal scores"}</button></div></div>
-      <div class="hcard"><div class="head"><h3>Sound</h3><span class="state-pill ${eventSound().on ? "on" : ""}" id="hs-pill">${eventSound().on ? (isGame() ? "gamified profile" : "classic profile") : "off"}</span></div>
-        <p class="sub">Plays on the leaderboard screen. Changes reach the projector in a second or two.</p>
-        ${soundSettingsHTML("hs", eventSound())}
-        <div class="acts"><button class="btn sm ghost" id="hs-preview">Preview on this device</button></div></div>
       <div class="hcard"><div class="head"><h3>Event</h3><span class="state-pill ${S.ended?"":"on"}">${S.ended ? "ended" : "running"}</span></div>
         ${S.expiresAt ? `<p class="sub" style="${soon?"color:var(--bad)":""}">${soon?"⚠ ":""}Deletes automatically ${untilText(S.expiresAt)} (${fmtDate(S.expiresAt)}) ${S.ended ? "since it ended" : "if there's no activity"}.</p>` : ""}
         <div class="acts">${S.ended
@@ -1389,8 +1408,8 @@ V.hostLive = () => {
   $app.innerHTML = `${barHTML()}<div class="wrap">
     <div class="nav-top"><button class="back" id="exit">← Exit host tools</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
     <div class="spread" style="flex:none"><h2>Host tools</h2><span class="${S.ended ? "state-pill" : "live"}">${esc(status.toUpperCase())}</span></div>
-    <div class="tabs" role="tablist">${[["share","Share codes"],["run","Run event"],["status","Live status"]].map(([k,l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>
-    ${tab === "share" ? share : tab === "run" ? run : stat}
+    <div class="tabs" role="tablist">${[["share","Share codes"],["run","Run event"],["status","Live status"],["sound","Sound"]].map(([k,l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>
+    ${tab === "share" ? share : tab === "run" ? run : tab === "sound" ? soundPageHTML() : stat}
   </div>`;
   onAll("[data-tab]", el => { S.viewCtx.tab = el.dataset.tab; V.hostLive(); });
   on("#copylink", async () => { try{ await navigator.clipboard.writeText(joinURL(S.code)); toast("Join link copied"); }catch{ toast("Join link: " + joinURL(S.code), {ms:8000}); } });
@@ -1434,17 +1453,7 @@ V.hostLive = () => {
   on("#keep", () => keepEvent(S.code));
   tickTimers();
   on("#tmrbtn", timerModal);
-  let sndT;
-  wireSoundSettings("hs", v => {
-    const pill = $app.querySelector("#hs-pill"); if(pill){ pill.textContent = v.on ? (isGame() ? "gamified profile" : "classic profile") : "off"; pill.classList.toggle("on", v.on); }
-    clearTimeout(sndT); sndT = setTimeout(async () => {
-      const code = S.code, pw = hostPw(code); if(!pw) return;
-      const data = {...S.event, sound: v};
-      try{ if(!must(await S.sb.rpc("update_event", {p_code: code, p_password: pw, p_data: data}))){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return; } if(S.code === code) S.event = data; toast(v.on ? "Sound settings saved" : "Sound turned off on the leaderboard"); }
-      catch(e){ console.warn(e); toast("Couldn't save the sound settings. Try again.", {color:"#FF6B7A"}); }
-    }, 600);
-  });
-  on("#hs-preview", async () => { const ok = await Sound.preview(isGame() ? "game" : "classic", readSoundSettings("hs") || eventSound()); if(!ok) toast("Sound isn't available on this device."); });
+  wireSoundPage();
   on("#reveal", () => {
     const counts = teams().map(t => `<li><b style="color:var(--text)">${esc(t.name)}</b> · ${judgesFor(t)} judge scorecard${judgesFor(t)===1?"":"s"}</li>`).join("");
     if(S.revealed) return modal({title:"Hide scores again?", body:`<p>The leaderboard and team screens go back to showing only how many judges have scored. You can reveal again any time.</p>`,
@@ -1692,7 +1701,7 @@ V.judgeScore = () => {
 
 /* ----- Leaderboard ----- */
 let boardState = null;
-function stopBoard(){ Sound.stopMusic(); Sound.duck(false); if(boardState){ boardState.wake?.release?.().catch(()=>{}); clearInterval(boardState.iv); clearTimeout(boardState.reorderT); boardState = null; } }
+function stopBoard(){ if(boardState){ Sound.stopMusic(); Sound.duck(false); } if(boardState){ boardState.wake?.release?.().catch(()=>{}); clearInterval(boardState.iv); clearTimeout(boardState.reorderT); boardState = null; } }
 V.board = () => {
   if(!needEvent()) return;
   stopBoard();
@@ -1865,7 +1874,7 @@ function boardRender(first, eventEdit){
   boardState.leader = leader; boardState.pulse = null;
 }
 
-/* ---------- gamified leaderboard ---------- */
+/* ---------- arcade leaderboard ---------- */
 const isGame = () => !!(S.event && S.event.boardStyle === "game");
 const GICON = {
   obj:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>`,
@@ -2111,132 +2120,305 @@ function gTick(){
   const r = document.getElementById("grate"); if(r) r.textContent = st.recent.length ? `${st.recent.length} UPDATE${st.recent.length === 1 ? "" : "S"} / MIN` : "";
 }
 
-/* ---------- sound: generated live with Web Audio, two profiles ---------- */
+/* ---------- sound: generated live with Web Audio, two profiles (Classic and Arcade) ---------- */
+/* The core builds the mix on any audio context, so the same code plays live and renders offline. */
+function SoundCore(ctx, cfg = {}){
+  const MAXV = cfg.maxVoices || 160;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const hasPan = !!ctx.createStereoPanner;
+  // ---- mix: buses -> master -> limiter, with shared reverb and echo ----
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.value = -9; limiter.knee.value = 6; limiter.ratio.value = 14; limiter.attack.value = .002; limiter.release.value = .16;
+  limiter.connect(ctx.destination);
+  const master = ctx.createGain(); master.connect(limiter);
+  const rev = ctx.createConvolver(), revIn = ctx.createGain(), revOut = ctx.createGain();
+  rev.buffer = (() => { const len = Math.floor(ctx.sampleRate * 2.2), b = ctx.createBuffer(2, len, ctx.sampleRate);
+    for(let c = 0; c < 2; c++){ const d = b.getChannelData(c); for(let i = 0; i < len; i++) d[i] = (Math.random()*2 - 1) * Math.pow(1 - i/len, 3.2); } return b; })();
+  revIn.connect(rev); rev.connect(revOut); revOut.gain.value = .32; revOut.connect(master);
+  const dly = ctx.createDelay(1), dlyIn = ctx.createGain(), dlyFb = ctx.createGain(), dlyLp = ctx.createBiquadFilter(), dlyOut = ctx.createGain();
+  dly.delayTime.value = .32; dlyFb.gain.value = .33; dlyLp.type = "lowpass"; dlyLp.frequency.value = 3200; dlyOut.gain.value = .3;
+  dlyIn.connect(dly); dly.connect(dlyLp); dlyLp.connect(dlyFb); dlyFb.connect(dly); dlyLp.connect(dlyOut); dlyOut.connect(master);
+  const musicBus = ctx.createGain(); musicBus.connect(master);
+  const pump = ctx.createGain(); pump.connect(musicBus);          // bass, pads and arps breathe with the kick
+  const sfxBus = ctx.createGain(); sfxBus.connect(master);
+  const noiseBuf = (() => { const b = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), d = b.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1; return b; })();
+  let voices = 0;
+  const clapBuf = (() => { const sr = ctx.sampleRate, len = Math.floor(sr * 3.2), b = ctx.createBuffer(2, len, sr);
+    for(let c = 0; c < 2; c++){ const d = b.getChannelData(c);
+      for(let k = 0; k < 520; k++){ const x = Math.random() * 3.2, env = Math.sin(Math.PI * Math.min(1, x / 3.2 * 1.15)) * Math.min(1, x / .3), start = Math.floor(x * sr), amp = (.25 + Math.random() * .75) * env, n = Math.floor(sr * (.008 + Math.random() * .012));
+        for(let i = 0; i < n && start + i < len; i++) d[start + i] += (Math.random() * 2 - 1) * amp * Math.exp(-i / (n / 4)); }
+      let pk = 0; for(let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(d[i])); for(let i = 0; i < len; i++) d[i] /= pk || 1; }
+    return b; })();
+
+  function out(node, t, end, {bus = sfxBus, pan = 0, rev: rv = 0, dly: dv = 0} = {}){
+    let n = node;
+    if(pan && hasPan){ const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); n.connect(p); n = p; }
+    n.connect(bus);
+    if(rv){ const g = ctx.createGain(); g.gain.value = rv; n.connect(g); g.connect(revIn); }
+    if(dv){ const g = ctx.createGain(); g.gain.value = dv; n.connect(g); g.connect(dlyIn); }
+  }
+  /* one synth voice. fm adds a modulator for bells and electric piano; vib adds delayed vibrato */
+  function v({f, f2, glide, type = "sine", t, a = .004, d = .25, s = 0, hold = 0, r = .15, gain = .1, bus, pan, rev: rv, dly: dv, lp, lp2, q = .8, detune = 0, fm, vib}){
+    if(voices > MAXV) return;
+    const o = ctx.createOscillator(), g = ctx.createGain(); let n = o;
+    o.type = type; o.detune.value = detune; o.frequency.setValueAtTime(f, t);
+    if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + (glide || a + d));
+    if(fm){ const m = ctx.createOscillator(), mg = ctx.createGain(); m.frequency.value = f * fm.ratio; mg.gain.setValueAtTime(f * fm.index, t); mg.gain.exponentialRampToValueAtTime(Math.max(1, f * fm.index * .02), t + (fm.decay || .4)); m.connect(mg); mg.connect(o.frequency); m.start(t); m.stop(t + a + d + hold + r + .2); }
+    if(vib){ const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = vib.rate || 6; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(f * (vib.depth || .012), t + (vib.delay || .12) + .08); l.connect(lg); lg.connect(o.frequency); l.start(t); l.stop(t + a + d + hold + r + .2); }
+    if(lp){ const fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.Q.value = q; fl.frequency.setValueAtTime(lp, t); if(lp2) fl.frequency.exponentialRampToValueAtTime(lp2, t + a + d); n.connect(fl); n = fl; }
+    n.connect(g);
+    const end = t + a + d + hold + r;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + a);
+    g.gain.setTargetAtTime(gain * s, t + a, Math.max(.005, d / 3));
+    g.gain.setTargetAtTime(0, t + a + d + hold, Math.max(.005, r / 4));
+    out(g, t, end, {bus: bus || sfxBus, pan, rev: rv, dly: dv});
+    o.start(t); o.stop(end + .15); voices++; o.onended = () => { voices--; try{ g.disconnect(); }catch{} };
+  }
+  function nz({t, dur = .1, gain = .1, type = "highpass", f = 6000, f2, q = .8, a = .001, bus, pan, rev: rv, dly: dv, curve = "exp"}){
+    if(voices > MAXV) return;
+    const src = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
+    src.buffer = noiseBuf; fl.type = type; fl.Q.value = q; fl.frequency.setValueAtTime(f, t); if(f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    src.connect(fl); fl.connect(g);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + a);
+    if(curve === "exp") g.gain.exponentialRampToValueAtTime(.0004, t + dur); else g.gain.linearRampToValueAtTime(0, t + dur);
+    out(g, t, t + dur, {bus: bus || sfxBus, pan, rev: rv, dly: dv});
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + .05); voices++; src.onended = () => { voices--; try{ g.disconnect(); }catch{} };
+  }
+  // ---- drum kit ----
+  const D = {
+    kick(t, g = .55, bus = musicBus, doPump = true){
+      v({f:160, f2:42, glide:.11, t, a:.001, d:.2, r:.05, gain:g, bus});
+      nz({t, dur:.012, gain:g * .25, f:3000, bus});
+      if(doPump && bus === musicBus){ pump.gain.cancelScheduledValues(t); pump.gain.setValueAtTime(.42, t); pump.gain.linearRampToValueAtTime(1, t + .2); }
+    },
+    snare(t, g = .22, bus = musicBus, rv = .12){ nz({t, dur:.17, gain:g, type:"bandpass", f:1900, q:.6, bus, rev:rv}); v({type:"triangle", f:190, f2:150, t, a:.001, d:.07, gain:g * .7, bus}); },
+    clap(t, g = .16, bus = musicBus){ [0, .011, .023].forEach(dt => nz({t:t + dt, dur:.02, gain:g, type:"bandpass", f:1300, q:1.1, bus})); nz({t:t + .03, dur:.18, gain:g * .8, type:"bandpass", f:1200, q:1, bus, rev:.25}); },
+    hat(t, g = .05, pan = 0, bus = musicBus){ nz({t, dur:.035, gain:g, f:8000, bus, pan}); },
+    ohat(t, g = .05, bus = musicBus){ nz({t, dur:.22, gain:g, f:7000, bus, pan:.2}); },
+    shaker(t, g = .03, bus = musicBus){ nz({t, dur:.05, gain:g, type:"bandpass", f:6500, q:1.4, a:.012, bus, pan:-.3}); },
+    crash(t, g = .1, bus = musicBus){ nz({t, dur:1.8, gain:g, f:4500, bus, rev:.3, pan:.15}); },
+    tom(t, m, g = .25, bus = musicBus){ v({f:mtof(m), f2:mtof(m - 7), t, a:.001, d:.22, gain:g, bus}); }
+  };
+  // ---- instruments ----
+  const I = {
+    // Arcade
+    lead(m, t, len, g = .045, pan = 0){ const f = mtof(m); [-7, 7].forEach(dt => v({type:"square", f, t, a:.004, d:len, s:.75, r:.06, gain:g, lp:5200, detune:dt, vib:{delay:.14, depth:.01, rate:6.2}, bus:musicBus, pan, dly:.28, rev:.16})); },
+    bass(m, t, len, g = .1){ const f = mtof(m); v({type:"square", f, t, a:.003, d:len * .9, s:.6, r:.04, gain:g * .55, lp:850, q:2, bus:pump}); v({type:"triangle", f, t, a:.003, d:len * .9, s:.8, r:.04, gain:g, bus:pump}); },
+    arp(m, t, g = .022, pan = 0, lp = 3200){ v({type:"square", f:mtof(m), t, a:.002, d:.08, gain:g, lp, bus:pump, pan, dly:.22}); },
+    pad(ch, t, len, g = .012){ ch.forEach((m, k) => v({type:"sawtooth", f:mtof(m), t, a:.25, d:len, s:.7, r:.5, gain:g, lp:1500, detune:k % 2 ? 9 : -9, bus:pump, rev:.35, pan:k % 2 ? .3 : -.3})); },
+    // Classic
+    epiano(m, t, len, g = .05, pan = 0){ const f = mtof(m); v({f, t, a:.003, d:len, s:.15, r:.25, gain:g, fm:{ratio:1, index:1.6, decay:.35}, bus:pump, pan, rev:.2}); v({f:f * 2, t, a:.002, d:.15, gain:g * .18, bus:pump, pan}); },
+    bell(m, t, len = .6, g = .06, pan = 0, bus = musicBus, dv = .25){ const f = mtof(m); v({f, t, a:.002, d:len, r:.3, gain:g, fm:{ratio:3.5, index:2.2, decay:.28}, bus, pan, dly:dv, rev:.25}); v({type:"triangle", f, t, a:.002, d:len * .6, gain:g * .45, bus, pan}); },
+    marimba(m, t, g = .05, pan = 0, bus = musicBus){ const f = mtof(m); v({f, t, a:.001, d:.28, gain:g, fm:{ratio:4, index:1.2, decay:.06}, bus, pan, rev:.15}); },
+    cbass(m, t, len, g = .13){ const f = mtof(m); v({f, t, a:.004, d:len, s:.5, r:.06, gain:g, bus:pump}); v({type:"triangle", f:f * 2, t, a:.004, d:len * .5, gain:g * .25, lp:1200, bus:pump}); },
+    brass(ch, t, len, g = .04, bus = sfxBus){ ch.forEach((m, k) => [-6, 6].forEach(dt => v({type:"sawtooth", f:mtof(m), t, a:.035, d:len, s:.7, r:.25, gain:g, lp:900, lp2:2600, q:1.2, detune:dt, bus, rev:.3, pan:(k - ch.length/2) * .2}))); }
+  };
+
+  // ---- songs: 16th-note steps. Arcade 140 bpm, Classic 120 bpm ----
+  const ARC = {bpm:140, chords:[[52,55,59],[48,52,55],[55,59,62],[50,54,57]], roots:[40,36,43,38],
+    mel:[
+      [[0,76,2],[2,79,2],[4,83,2],[6,81,1],[7,79,1],[8,76,3],[11,74,1],[12,76,2],[14,79,2]],
+      [[0,79,2],[2,76,2],[4,72,2],[6,74,2],[8,76,4],[12,72,2],[14,74,2]],
+      [[0,74,2],[2,79,2],[4,83,3],[7,81,1],[8,79,2],[10,78,2],[12,79,2],[14,81,2]],
+      [[0,78,4],[4,81,2],[6,78,2],[8,74,6],[14,76,1],[15,78,1]],
+      [[0,83,3],[3,81,1],[4,79,2],[6,81,2],[8,83,2],[10,86,2],[12,83,4]],
+      [[0,84,3],[3,83,1],[4,81,2],[6,79,2],[8,76,4],[12,79,2],[14,81,2]],
+      [[0,79,2],[2,81,2],[4,83,2],[6,86,2],[8,88,4],[12,86,2],[14,83,2]],
+      [[0,81,6],[6,79,2],[8,78,4],[12,74,2],[14,78,2]]]};
+  const CLS = {bpm:120, chords:[[60,64,67],[59,62,67],[60,64,69],[60,65,69]], roots:[36,43,45,41],
+    mel:[
+      [[0,79,2],[2,81,1],[3,79,1],[4,76,2],[6,72,2],[8,74,2],[10,76,2],[12,79,4]],
+      [[0,79,2],[2,77,2],[4,76,2],[6,74,2],[8,71,4],[12,74,2],[14,76,2]],
+      [[0,76,2],[2,77,2],[4,79,2],[6,81,2],[8,84,3],[11,83,1],[12,81,2],[14,79,2]],
+      [[0,77,4],[4,76,2],[6,74,2],[8,72,4],[12,74,2],[14,76,2]],
+      [[0,84,2],[2,83,2],[4,81,2],[6,79,2],[8,81,2],[10,79,2],[12,76,4]],
+      [[0,74,2],[2,76,2],[4,79,4],[8,83,2],[10,81,2],[12,79,4]],
+      [[0,81,3],[3,79,1],[4,76,2],[6,72,2],[8,77,2],[10,76,2],[12,74,4]],
+      [[0,72,6],[6,74,2],[8,76,2],[10,77,2],[12,79,4]]]};
+  const section = (bar, intro) => bar < intro ? "intro" : (((bar - intro) % 20) < 8 ? "A" : ((bar - intro) % 20) < 16 ? "B" : "BRK");
+  function arcadeStep(st, t){
+    const sd = 60 / ARC.bpm / 4, bar = Math.floor(st / 16), s = st % 16, sec = section(bar, 4), ci = bar % 4, ch = ARC.chords[ci], root = ARC.roots[ci], mb = (bar - 4) % 8;
+    const lb = (bar - 4) % 20;
+    if((sec === "A" || sec === "B") && s === 0 && (lb === 0 || lb === 8)) D.crash(t, .09);
+    if(sec === "intro"){
+      I.arp(ch[s % 3] + 24 + (s % 6 >= 3 ? 12 : 0), t, .018, s % 2 ? .35 : -.35, 900 + bar * 700);
+      if(bar >= 1 && s % 2 === 0) I.bass(root + (s % 4 === 2 ? 12 : 0), t, sd * 1.6, .085);
+      if(bar >= 2 && s % 4 === 0) D.kick(t, .45);
+      if(bar >= 2 && s % 4 === 2) D.hat(t, .04, .2);
+      if(bar === 3 && s >= 8) D.snare(t, .06 + (s - 8) * .02, musicBus, .05);
+      return sd;
+    }
+    if(sec === "BRK"){
+      if(s === 0) I.pad(ch.map(m => m + 12), t, sd * 15, .014);
+      if(s % 2 === 0) I.arp(ch[(s / 2) % 3] + 24, t, .016, s % 4 ? .4 : -.4, 1300);
+      if(s === 0 || s === 8) I.bass(root, t, sd * 7, .07);
+      if(lb === 19){ D.snare(t, .05 + s * .012, musicBus, .04); if(s % 2) D.snare(t + sd / 2, .05 + s * .012, musicBus, .04); }
+      if(lb === 18 && s % 4 === 0) D.kick(t, .3, musicBus, false);
+      return sd;
+    }
+    // full groove
+    if(s % 4 === 0) D.kick(t, .5);
+    if(s === 4 || s === 12){ D.snare(t, .2); if(sec === "B") D.clap(t, .1); }
+    D.hat(t, s % 4 === 2 ? .045 : .02, s % 2 ? .25 : -.1);
+    if(s === 14 && bar % 2) D.ohat(t, .04);
+    if(s % 2 === 0) I.bass(root + (s % 4 === 2 ? 12 : 0), t, sd * 1.7, .1);
+    if(sec === "B" || s % 2 === 0) I.arp(ch[[0,1,2,1][s % 4]] + 24 + (s % 8 >= 4 ? 12 : 0), t, sec === "B" ? .016 : .013, s % 2 ? .45 : -.45);
+    if(sec === "B" && s === 0) I.pad(ch, t, sd * 15, .01);
+    ARC.mel[mb].forEach(([p, m, len]) => { if(p === s){ I.lead(m, t, sd * len * .92, .042); if(sec === "B") I.lead(m - 12, t, sd * len * .9, .02, .25); } });
+    return sd;
+  }
+  function classicStep(st, t){
+    const sd = 60 / CLS.bpm / 4, bar = Math.floor(st / 16), s = st % 16, sec = section(bar, 2), ci = bar % 4, ch = CLS.chords[ci], root = CLS.roots[ci], mb = (bar - 2) % 8;
+    const lb = (bar - 2) % 20;
+    if((sec === "A" || sec === "B") && s === 0 && (lb === 0 || lb === 8)) D.crash(t, .07);
+    // electric piano offbeat stabs keep the bounce in every section
+    if(s === 2 || s === 6 || s === 10 || s === 14) ch.forEach((m, k) => I.epiano(m, t, sd * 1.2, .028, (k - 1) * .3));
+    if(s % 2 === 0 || sec !== "intro") D.shaker(t, s % 4 === 2 ? .032 : .016);
+    if(sec === "intro"){ if(bar === 1 && s >= 12) D.snare(t, .05 + (s - 12) * .03, musicBus, .1); return sd; }
+    if(sec === "BRK"){
+      if(s === 0 || s === 8) I.cbass(root, t, sd * 6, .1);
+      if(lb === 19){ D.snare(t, .04 + s * .012, musicBus, .08); }
+      return sd;
+    }
+    const kicks = sec === "B" ? [0, 6, 8, 11] : [0, 8];
+    if(kicks.includes(s)) D.kick(t, .45);
+    if(s === 4 || s === 12){ D.clap(t, .12); D.snare(t, .08); }
+    const bl = {0:[0,3], 6:[0,2], 8:[12,2], 10:[0,2], 14:[7,2]};
+    if(bl[s]) I.cbass(root + bl[s][0], t, sd * bl[s][1] * .85, .12);
+    CLS.mel[mb].forEach(([p, m, len]) => { if(p === s) I.bell(m, t, Math.max(.25, sd * len), .055, 0, musicBus, .22); });
+    if(sec === "B" && s % 2 === 0) I.marimba(ch[(s / 2) % 3] + 12, t, .03, s % 4 ? .45 : -.45);
+    return sd;
+  }
+
+  // ---- effects. arg.combo raises the pitch when objectives land in quick succession ----
+  const SC = [0, 2, 4, 5, 7, 9, 11, 12, 14];
+  const FX = {
+    game: {
+      objective(t, a = {}){ const k = SC[Math.min(8, a.combo || 0)], b = 83 + k;
+        v({type:"square", f:mtof(b), t, a:.002, d:.06, gain:.08, lp:7000, pan:-.15});
+        v({type:"square", f:mtof(b + 5), t:t + .065, a:.002, d:.3, s:.2, r:.15, gain:.08, lp:7000, dly:.32, rev:.15, pan:.15});
+        [12, 16, 19].forEach((x, i) => v({type:"square", f:mtof(b + x), t:t + .12 + i * .035, a:.001, d:.05, gain:.03, lp:8000, pan:i % 2 ? .5 : -.5, dly:.25}));
+        D.kick(t, .22, sfxBus, false); },
+      milestone(t){ [72,76,79,84,88,91,96].forEach((m, i) => v({type:"square", f:mtof(m), t:t + i * .045, a:.001, d:.06, gain:.055, lp:7000, pan:(i % 2 ? .3 : -.3)}));
+        const h = t + .34; [84, 88, 91].forEach(m => v({type:"square", f:mtof(m), t:h, a:.004, d:.7, s:.5, r:.3, gain:.035, lp:6000, vib:{delay:.1, depth:.012, rate:7}, dly:.3, rev:.25}));
+        v({type:"sawtooth", f:mtof(48), t:h, a:.004, d:.5, s:.3, r:.2, gain:.08, lp:900});
+        D.kick(h, .45, sfxBus, false); D.crash(h, .1, sfxBus); D.snare(t + .26, .12, sfxBus); },
+      streak(t, a = {}){ const n = Math.min(8, a.combo || 3), up = SC[n];
+        for(let i = 0; i < 8; i++) v({type:"square", f:mtof(72 + up + i * 2), t:t + i * .028, a:.001, d:.04, gain:.04 + i * .004, lp:8000, pan:-.4 + i * .1});
+        nz({t, dur:.32, gain:.06, type:"bandpass", f:600, f2:6000, q:1.2, pan:.2});
+        [79, 83, 86].forEach(m => v({type:"sawtooth", f:mtof(m + up), t:t + .24, a:.003, d:.18, gain:.035, lp:4000, dly:.3, rev:.2}));
+        D.snare(t + .24, .14, sfxBus); },
+      judge(t){ v({f:110, f2:55, t, a:.001, d:.14, gain:.3}); nz({t, dur:.03, gain:.08, f:3500, pan:-.3});
+        v({type:"square", f:mtof(69), t:t + .02, a:.001, d:.05, gain:.06, lp:4000, pan:-.2}); v({type:"square", f:mtof(81), t:t + .09, a:.001, d:.1, gain:.06, lp:4000, pan:.2, dly:.25}); },
+      submit(t){ const st = [[60,64,67],[65,69,72],[67,71,74]];
+        st.forEach((ch, i) => { ch.forEach(m => v({type:"sawtooth", f:mtof(m), t:t + i * .14, a:.003, d:.11, gain:.035, lp:3500})); D.snare(t + i * .14, .14, sfxBus); });
+        const h = t + .42; [72, 76, 79, 84].forEach(m => [-8, 8].forEach(dt => v({type:"sawtooth", f:mtof(m), t:h, a:.004, d:1.1, s:.45, r:.4, gain:.022, lp:1400, lp2:5200, detune:dt, vib:{delay:.25, depth:.008, rate:5.5}, rev:.3})));
+        D.kick(h, .5, sfxBus, false); D.crash(h, .12, sfxBus);
+        [96, 100, 103].forEach((m, i) => v({type:"square", f:mtof(m), t:h + .1 + i * .06, a:.001, d:.06, gain:.025, lp:9000, dly:.3, pan:i % 2 ? .5 : -.5})); },
+      overtake(t){ nz({t, dur:.3, gain:.08, type:"bandpass", f:400, f2:5000, q:1.4, pan:-.6}); nz({t:t + .12, dur:.2, gain:.06, type:"bandpass", f:5000, f2:900, q:1.4, pan:.6});
+        v({type:"square", f:440, f2:1320, glide:.2, t, a:.002, d:.22, gain:.04, lp:5000});
+        const h = t + .26; [79, 83, 86].forEach(m => v({type:"square", f:mtof(m), t:h, a:.002, d:.14, gain:.035, lp:6000, dly:.3})); D.kick(h, .35, sfxBus, false); },
+      tick(t, a = {}){ const urgent = (a.sec || 9) <= 3;
+        v({type:"square", f:urgent ? 1320 : 1760, t, a:.001, d:urgent ? .09 : .03, gain:urgent ? .06 : .04, lp:7000});
+        if(urgent) v({type:"square", f:880, t, a:.001, d:.09, gain:.05, lp:5000}); },
+      timesup(t){ [110, 116.5, 220].forEach(f => v({type:"sawtooth", f, t, a:.005, d:.6, s:.7, hold:.1, r:.15, gain:.06, lp:1600}));
+        D.kick(t, .5, sfxBus, false);
+        const h = t + .85; [84, 79, 76, 72].forEach((m, i) => v({type:"square", f:mtof(m), t:h + i * .11, a:.002, d:.09, gain:.05, lp:6000, dly:.2}));
+        [60, 64, 67, 72].forEach(m => v({type:"square", f:mtof(m), t:h + .46, a:.003, d:.9, s:.4, r:.3, gain:.03, lp:4000, vib:{delay:.2, depth:.012}, rev:.3}));
+        D.crash(h + .46, .1, sfxBus); D.kick(h + .46, .45, sfxBus, false); },
+      riser(t, a = {}){ const dur = a.dur || 7;
+        nz({t, dur, gain:.06, type:"highpass", f:300, f2:8000, a:dur * .95, curve:"lin", rev:.2});
+        v({type:"sawtooth", f:55, f2:880, glide:dur, t, a:dur * .95, d:.05, gain:.04, lp:300, lp2:6000});
+        let tt = t; for(let k = 0; k < 40; k++){ const gap = .34 * Math.pow(.92, k); tt += gap; if(tt > t + dur) break; D.snare(tt, .04 + k * .004, sfxBus, .04); }
+        for(let k = 0; k < 24; k++) v({type:"square", f:mtof(60 + k), t:t + dur * k / 24, a:.001, d:.05, gain:.012 + k * .001, lp:6000, pan:k % 2 ? .4 : -.4}); },
+      fanfare(t){ const mel = [[67,.13],[72,.13],[76,.13],[79,.26],[76,.13],[79,1.1]], har = [64,67,72,76,72,76];
+        let tt = t; mel.forEach(([m, len], i) => { I.lead(m + 12, tt, len * .95, .05); v({type:"square", f:mtof(har[i] + 12), t:tt, a:.003, d:len * .9, s:.6, r:.05, gain:.025, lp:5000}); D.kick(tt, .35, sfxBus, false); if(i % 2) D.snare(tt, .12, sfxBus); tt += len; });
+        const h = t + .91; D.crash(h, .13, sfxBus); D.kick(h, .55, sfxBus, false);
+        [60, 64, 67, 72].forEach(m => [-8, 8].forEach(dt => v({type:"sawtooth", f:mtof(m), t:h, a:.01, d:1.6, s:.5, r:.6, gain:.018, lp:1200, lp2:4000, detune:dt, rev:.35})));
+        for(let k = 0; k < 10; k++) v({type:"square", f:mtof(96 + SC[k % 8]), t:h + .1 + k * .05, a:.001, d:.05, gain:.02, lp:9000, pan:k % 2 ? .6 : -.6, dly:.3}); }
+    },
+    classic: {
+      objective(t, a = {}){ const k = SC[Math.min(8, a.combo || 0)], b = 84 + k;
+        I.bell(b, t, .5, .075, -.2, sfxBus, .3); I.bell(b + 7, t + .085, .9, .075, .2, sfxBus, .35);
+        [12, 19, 24].forEach((x, i) => I.bell(b + x, t + .16 + i * .04, .25, .022, i % 2 ? .6 : -.6, sfxBus, .2));
+        nz({t, dur:.05, gain:.06, type:"bandpass", f:1300, q:2}); v({f:180, f2:90, t, a:.001, d:.08, gain:.18}); },
+      milestone(t){ [72, 76, 79, 84, 88].forEach((m, i) => I.bell(m, t + i * .05, .3, .05, (i - 2) * .25, sfxBus, .2));
+        const h = t + .3; I.brass([60, 64, 67, 72], h, .8, .03); I.bell(91, h, 1.4, .05, 0, sfxBus, .3); D.crash(h, .07, sfxBus); D.kick(h, .35, sfxBus, false); },
+      streak(t, a = {}){ const up = SC[Math.min(8, a.combo || 3)];
+        [72, 74, 76, 79, 81, 84, 86, 88].forEach((m, i) => I.marimba(m + up, t + i * .038, .06, -.5 + i * .14, sfxBus));
+        I.bell(91 + up, t + .33, .9, .05, 0, sfxBus, .3); D.clap(t + .33, .1, sfxBus); },
+      judge(t){ v({f:300, f2:900, glide:.07, t, a:.002, d:.08, gain:.12, pan:-.2}); nz({t, dur:.03, gain:.07, type:"bandpass", f:2000, q:3});
+        v({f:600, f2:1500, glide:.06, t:t + .09, a:.002, d:.09, gain:.1, pan:.2, dly:.2}); },
+      submit(t){ applause(t, 2.2, .07);
+        I.brass([67, 72, 76], t, .12, .03); I.brass([67, 72, 76], t + .16, .12, .03); I.brass([72, 76, 79, 84], t + .34, 1, .03);
+        D.crash(t + .34, .08, sfxBus); D.kick(t + .34, .4, sfxBus, false); I.bell(96, t + .34, 1.2, .04, 0, sfxBus, .3); },
+      overtake(t){ v({f:600, f2:1500, glide:.32, t, a:.01, d:.34, gain:.09, vib:{delay:.02, depth:.02, rate:7}, pan:-.2});
+        nz({t:t + .34, dur:.05, gain:.08, type:"bandpass", f:1400, q:3, pan:.2}); I.bell(88, t + .36, .5, .05, .2, sfxBus, .3); },
+      tick(t, a = {}){ const urgent = (a.sec || 9) <= 3; v({f:urgent ? 900 : 1150, f2:urgent ? 650 : 820, t, a:.001, d:.06, gain:urgent ? .16 : .1}); nz({t, dur:.01, gain:.05, f:3000}); },
+      timesup(t){ [150, 155].forEach(f => v({type:"square", f, t, a:.005, d:.55, s:.8, hold:.15, r:.1, gain:.05, lp:900}));
+        [84, 79, 72].forEach((m, i) => I.bell(m, t + .8 + i * .18, .9, .06, (i - 1) * .3, sfxBus, .3));
+        D.tom(t + .8, 52, .2, sfxBus); D.crash(t + 1.16, .07, sfxBus); },
+      riser(t, a = {}){ const dur = a.dur || 7;
+        let tt = t; const roll = .085; while(tt < t + dur){ const p = (tt - t) / dur; D.snare(tt, .03 + p * .11, sfxBus, .06); tt += roll * (1 - p * .45); }
+        v({f:65, t, a:dur * .95, d:.1, gain:.18}); nz({t, dur, gain:.03, type:"lowpass", f:300, f2:3000, a:dur * .9, curve:"lin"}); },
+      fanfare(t){ const n = [[67,.12],[67,.12],[67,.12],[72,1.2]]; let tt = t;
+        n.forEach(([m, len], i) => { I.brass(i < 3 ? [m, m - 5] : [m, m - 5, m - 8, m - 12], tt, len, .028); tt += len + .02; });
+        const h = t + .42; D.crash(h, .1, sfxBus); D.kick(h, .45, sfxBus, false); D.tom(t, 55, .15, sfxBus); D.tom(t + .14, 57, .15, sfxBus); D.tom(t + .28, 59, .15, sfxBus);
+        [84, 88, 91, 96].forEach((m, i) => I.bell(m, h + .1 + i * .07, .8, .04, (i - 1.5) * .3, sfxBus, .3)); applause(h, 3, .08); }
+    }
+  };
+  function applause(t, dur, g){
+    const src = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), gn = ctx.createGain();
+    src.buffer = clapBuf; src.playbackRate.value = 3.2 / Math.max(1, dur); fl.type = "bandpass"; fl.frequency.value = 2200; fl.Q.value = .5;
+    src.connect(fl); fl.connect(gn); gn.gain.value = g * 3;
+    out(gn, t, t + dur, {rev:.2}); src.start(t); src.stop(t + dur + .1);
+  }
+  return {
+    musicBus, sfxBus, master,
+    stepDur: p => p === "game" ? 60 / ARC.bpm / 4 : 60 / CLS.bpm / 4,
+    musicStep: (p, st, t) => (p === "game" ? arcadeStep : classicStep)(st, t),
+    fx: (p, name, t, arg) => { const f = (FX[p] || FX.classic)[name]; if(f) f(t, arg || {}); },
+    names: Object.keys(FX.game)
+  };
+}
+
 const Sound = (() => {
   const AC = window.AudioContext || window.webkitAudioContext;
-  let ctx = null, out, musicBus, sfxBus, profile = "classic", levels = {on:true, music:.4, sfx:.8};
-  let localMute = false, duckLevel = 1, musicWanted = false, sched = null, nextT = 0, step = 0, noiseBuf = null, voices = 0;
-  const last = {};
-  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  let ctx = null, core = null, profile = "classic", levels = {on:true, music:.4, sfx:.8}, opts = {ticks:true, reveal:true, combo:true};
+  let localMute = false, duckLevel = 1, musicWanted = false, sched = null, nextT = 0, step = 0;
+  const last = {}; let combo = {n:0, t:0};
   const curve = v => Math.pow(Math.max(0, Math.min(1, v)), 2);
-
   function ensure(){
-    if(ctx) return true;
-    if(!AC) return false;
-    try{ ctx = new AC(); }catch{ return false; }
-    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .005; comp.release.value = .2; comp.connect(ctx.destination);
-    out = ctx.createGain(); out.connect(comp);
-    musicBus = ctx.createGain(); musicBus.connect(out);
-    sfxBus = ctx.createGain(); sfxBus.connect(out);
-    applyGains(true);
-    return true;
+    if(ctx) return true; if(!AC) return false;
+    try{ ctx = new AC({latencyHint:"interactive"}); core = SoundCore(ctx); }catch{ ctx = null; return false; }
+    applyGains(true); return true;
   }
   function applyGains(instant){
     if(!ctx) return;
-    const t = ctx.currentTime, on = levels.on && !localMute, k = instant ? .01 : .25;
-    out.gain.setTargetAtTime(on ? 1 : 0, t, instant ? .01 : .12);
-    musicBus.gain.setTargetAtTime(curve(levels.music) * .5 * duckLevel, t, k);
-    sfxBus.gain.setTargetAtTime(curve(levels.sfx) * .9, t, .05);
+    const t = ctx.currentTime, on = levels.on && !localMute;
+    core.master.gain.setTargetAtTime(on ? 1 : 0, t, instant ? .01 : .1);
+    core.musicBus.gain.setTargetAtTime(curve(levels.music) * .9 * duckLevel, t, instant ? .01 : .25);
+    core.sfxBus.gain.setTargetAtTime(curve(levels.sfx) * 1.1, t, .04);
   }
-  function noise(){
-    if(noiseBuf) return noiseBuf;
-    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const d = noiseBuf.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    return noiseBuf;
-  }
-  /* one synth voice: oscillator -> optional filter -> envelope -> bus */
-  function tone({f, f2, type = "sine", t = ctx.currentTime, a = .005, d = .3, s = 0, hold = 0, r = .2, gain = .2, bus = sfxBus, lp, lp2, q = .7, detune = 0}){
-    if(voices > 40) return;
-    const o = ctx.createOscillator(), g = ctx.createGain(); let node = o;
-    o.type = type; o.frequency.setValueAtTime(f, t); o.detune.value = detune;
-    if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + a + d);
-    if(lp){ const fl = ctx.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.setValueAtTime(lp, t); fl.Q.value = q; if(lp2) fl.frequency.exponentialRampToValueAtTime(lp2, t + a + d); node.connect(fl); node = fl; }
-    node.connect(g); g.connect(bus);
-    const end = t + a + d + hold + r;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + a);
-    g.gain.setTargetAtTime(gain * s, t + a, d / 3 || .01);
-    g.gain.setTargetAtTime(0, t + a + d + hold, r / 4 || .01);
-    o.start(t); o.stop(end + .1); voices++; o.onended = () => { voices--; g.disconnect(); };
-  }
-  function burst({t = ctx.currentTime, dur = .1, gain = .2, type = "highpass", f = 6000, f2, q = .8, bus = sfxBus, a = .002}){
-    if(voices > 40) return;
-    const src = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
-    src.buffer = noise(); fl.type = type; fl.frequency.setValueAtTime(f, t); fl.Q.value = q; if(f2) fl.frequency.exponentialRampToValueAtTime(f2, t + dur);
-    src.connect(fl); fl.connect(g); g.connect(bus);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + a); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
-    src.start(t, Math.random()); src.stop(t + dur + .05); voices++; src.onended = () => { voices--; g.disconnect(); };
-  }
-  const bell = (m, t, gain = .16, bus = sfxBus, dec = 1.4) => {
-    const f = mtof(m);
-    tone({f, t, a:.003, d:dec, gain, bus});
-    tone({f:f * 2.76, t, a:.002, d:dec * .45, gain:gain * .28, bus});
-    tone({f:f * 5.4, t, a:.001, d:dec * .2, gain:gain * .12, bus});
-  };
-  const kick = (t, g = .5) => tone({f:140, f2:42, t, a:.002, d:.16, r:.05, gain:g, bus:musicBus});
-  const hat = (t, g = .06) => burst({t, dur:.045, gain:g, f:7500, bus:musicBus});
-  const clap = (t, g = .12) => burst({t, dur:.14, gain:g, type:"bandpass", f:1500, q:1.2, bus:musicBus});
-
-  /* ---- sound effects ---- */
-  const SFX = {
-    classic: {
-      objective(t){ bell(79, t); bell(84, t + .1, .14); },
-      milestone(t){ [72, 76, 79, 84].forEach((m, k) => bell(m, t + k * .08, .14)); },
-      streak(t){ [76, 79, 84].forEach((m, k) => bell(m, t + k * .07, .12)); },
-      judge(t){ tone({f:1250, f2:880, t, a:.001, d:.07, gain:.16}); burst({t, dur:.03, gain:.05, f:3000}); },
-      submit(t){ [60, 64, 67, 72].forEach(m => tone({f:mtof(m), type:"triangle", t, a:.06, d:1.4, s:.15, r:1, gain:.07})); bell(84, t + .05, .12, sfxBus, 2); },
-      overtake(t){ tone({f:520, f2:780, t, a:.02, d:.25, gain:.1}); },
-      tick(t){ tone({f:1000, t, a:.001, d:.04, gain:.08}); },
-      timesup(t){ [1, 2.41, 3.93, 5.2].forEach((p, k) => tone({f:98 * p, t, a:.004, d:3.5 - k * .6, gain:[.32, .14, .08, .05][k]})); },
-      riser(t, dur){ burst({t, dur, gain:.05, type:"lowpass", f:300, f2:4000, a:dur * .9}); tone({f:220, f2:440, t, a:dur * .9, d:.1, gain:.05, type:"triangle"}); },
-      fanfare(t){ [60, 64, 67, 72, 76].forEach((m, k) => bell(m, t + k * .09, .13, sfxBus, 2.2)); [48, 60, 64, 67].forEach(m => tone({f:mtof(m), type:"triangle", t:t + .45, a:.08, d:2.2, s:.2, r:1.2, gain:.06})); }
-    },
-    game: {
-      objective(t){ [72, 76, 79, 84].forEach((m, k) => tone({f:mtof(m), type:"square", t:t + k * .045, a:.002, d:.07, gain:.07, lp:4200})); burst({t:t + .16, dur:.18, gain:.05, f:9000}); },
-      milestone(t){ tone({f:260, f2:1400, type:"sawtooth", t, a:.01, d:.34, gain:.09, lp:600, lp2:6000}); [60, 64, 67, 72].forEach(m => tone({f:mtof(m), type:"square", t:t + .34, a:.003, d:.45, gain:.045, lp:3500})); },
-      streak(t){ [72, 74, 76, 79, 81, 84].forEach((m, k) => tone({f:mtof(m), type:"square", t:t + k * .035, a:.002, d:.05, gain:.06, lp:5000})); },
-      judge(t){ tone({f:660, type:"square", t, a:.002, d:.05, gain:.07, lp:3000}); tone({f:990, type:"square", t:t + .07, a:.002, d:.08, gain:.07, lp:3000}); },
-      submit(t){ [57, 60, 64, 69].forEach(m => { tone({f:mtof(m), type:"sawtooth", t, a:.005, d:.9, s:.1, r:.5, gain:.05, lp:400, lp2:5000, detune:-6}); tone({f:mtof(m + 12), type:"sawtooth", t, a:.005, d:.9, r:.4, gain:.025, lp:400, lp2:5000, detune:6}); }); burst({t, dur:.6, gain:.08, type:"bandpass", f:500, f2:4000, q:1}); kick(t, .4); },
-      overtake(t){ burst({t, dur:.35, gain:.07, type:"bandpass", f:500, f2:3200, q:1.4}); tone({f:880, f2:1320, type:"square", t:t + .22, a:.003, d:.09, gain:.05, lp:4000}); },
-      tick(t){ tone({f:1500, type:"square", t, a:.001, d:.025, gain:.05, lp:5000}); },
-      timesup(t){ [110, 164.8, 220].forEach(f => tone({f, type:"sawtooth", t, a:.01, d:.9, s:.6, hold:.2, r:.3, gain:.08, lp:1300})); kick(t, .5); },
-      riser(t, dur){ burst({t, dur, gain:.07, type:"highpass", f:400, f2:6000, a:dur * .95}); tone({f:110, f2:880, type:"sawtooth", t, a:dur * .95, d:.05, gain:.05, lp:500, lp2:5000}); for(let k = 0; k < 16; k++){ const tt = t + dur * (1 - Math.pow(.86, k)); burst({t:tt, dur:.04, gain:.03 + k * .003, f:7500}); } },
-      fanfare(t){ const chord = [69, 73, 76, 81]; [0, .16, .32].forEach((dt, k) => chord.forEach(m => tone({f:mtof(m), type:"sawtooth", t:t + dt, a:.004, d:k === 2 ? 1.6 : .12, s:k === 2 ? .3 : 0, r:.6, gain:.04, lp:2500}))); kick(t, .5); kick(t + .32, .5); burst({t:t + .32, dur:.8, gain:.05, f:8000}); }
-    }
-  };
-  function play(name, arg){
+  function play(name, arg = {}){
     if(!ctx || ctx.state !== "running" || !levels.on || localMute) return;
-    const now = ctx.currentTime, minGap = name === "tick" ? .5 : .11;
-    if(last[name] && now - last[name] < minGap) return;     // a burst of updates never stacks into noise
-    last[name] = now;
-    const fx = (SFX[profile] || SFX.classic)[name]; if(fx) fx(now + .01, arg);
-  }
-
-  /* ---- background music ---- */
-  const CLASSIC = {bpm:70, div:2, chords:[[48,55,59,64],[45,52,55,60],[41,53,57,64],[43,50,55,59]], len:16};
-  const GAME = {bpm:112, div:4, chords:[[57,60,64],[53,57,60],[48,52,55],[55,59,62]], roots:[45,41,48,43], len:16};
-  function schedule(st, t){
-    if(profile === "game"){
-      const sd = 60 / GAME.bpm / GAME.div, bar = Math.floor(st / GAME.len), s = st % GAME.len, ci = bar % 4, ch = GAME.chords[ci], root = GAME.roots[ci];
-      const section = Math.floor(bar / 8) % 2;                                       // light / full sections so it does not get tiring
-      if(s % 4 === 0) kick(t, .32);
-      if(s % 4 === 2) hat(t, .05);
-      if(section && (s === 4 || s === 12)) clap(t, .09);
-      if(s % 2 === 0) tone({f:mtof(root + (s % 4 === 2 ? 12 : 0)), type:"sawtooth", t, a:.004, d:sd * 1.6, r:.05, gain:.09, lp:520, bus:musicBus});
-      const arp = [0, 1, 2, 1][s % 4], oct = s % 8 < 4 ? 12 : 24;
-      if(section || s % 2 === 0) tone({f:mtof(ch[arp] + oct), type:"square", t, a:.002, d:sd * .9, gain:.022, lp:2600, bus:musicBus});
-      if(s === 0) ch.forEach(m => tone({f:mtof(m), type:"sawtooth", t, a:.4, d:sd * 14, s:.6, r:.6, gain:.012, lp:1100, bus:musicBus, detune:(m % 2 ? 7 : -7)}));
-      return sd;
+    if(name === "tick" && !opts.ticks) return;
+    if((name === "riser" || name === "fanfare") && !opts.reveal) return;
+    const now = ctx.currentTime;
+    if(name === "objective" || name === "streak"){                                  // quick hits climb the scale
+      combo.n = now - combo.t < 4 ? Math.min(8, combo.n + 1) : 0; combo.t = now;
+      arg = {...arg, combo: opts.combo ? combo.n : 0};
     }
-    const sd = 60 / CLASSIC.bpm / CLASSIC.div, block = Math.floor(st / CLASSIC.len), s = st % CLASSIC.len, ch = CLASSIC.chords[block % 4];
-    if(s === 0) ch.forEach((m, k) => { tone({f:mtof(m), type:"triangle", t, a:1.6, d:sd * 14, s:.7, r:2.4, gain:.035, bus:musicBus, lp:1600, detune:k % 2 ? 5 : -5}); tone({f:mtof(m + 12), t, a:2, d:sd * 12, s:.5, r:2, gain:.012, bus:musicBus}); });
-    if([0, 3, 6, 10, 13].includes(s) && Math.random() < .8){ const m = ch[Math.floor(Math.random() * ch.length)] + 24; tone({f:mtof(m), type:"triangle", t, a:.004, d:1.6, gain:.03, bus:musicBus, lp:3200}); }
-    return sd;
+    const gap = name === "tick" ? .4 : name === "objective" ? .09 : .14;
+    if(last[name] && now - last[name] < gap) return;                                // bursts never stack into noise
+    last[name] = now;
+    core.fx(profile, name, now + .015, arg);
   }
   function startMusic(){
     musicWanted = true;
     if(!ctx || ctx.state !== "running" || sched) return;
-    nextT = ctx.currentTime + .08; step = 0;
-    sched = setInterval(() => { if(!ctx) return; while(nextT < ctx.currentTime + .15){ const sd = schedule(step, nextT); nextT += sd; step++; } }, 30);
+    nextT = ctx.currentTime + .1; step = 0;
+    sched = setInterval(() => { if(!ctx) return; while(nextT < ctx.currentTime + .18){ const sd = core.musicStep(profile, step, nextT); nextT += sd; step++; } }, 25);
   }
   function stopMusic(){ musicWanted = false; clearInterval(sched); sched = null; }
   async function unlock(){
@@ -2248,29 +2430,34 @@ const Sound = (() => {
   return {
     supported: !!AC,
     unlocked: () => !!ctx && ctx.state === "running",
+    musicOn: () => !!sched,
     unlock, play, startMusic, stopMusic,
+    profile: () => profile,
     setProfile(p){ p = p === "game" ? "game" : "classic"; if(p === profile) return; profile = p; if(sched){ clearInterval(sched); sched = null; if(musicWanted) startMusic(); } },
     setLevels(l){ levels = {...levels, ...l}; applyGains(); },
+    setOptions(o){ opts = {...opts, ...o}; },
     setLocalMute(m){ localMute = !!m; applyGains(); },
-    duck(on){ duckLevel = on ? .12 : 1; applyGains(); },
-    levels: () => ({...levels}),
-    async preview(p, l){
-      const keep = {profile, levels:{...levels}, wanted:musicWanted, mute:localMute};
-      if(!(await unlock())) return false;
-      profile = p === "game" ? "game" : "classic"; levels = {...levels, ...l, on:true}; localMute = false; applyGains(true);
-      startMusic(); setTimeout(() => play("objective"), 400); setTimeout(() => play("milestone"), 1500); setTimeout(() => play("judge"), 2600);
-      setTimeout(() => { stopMusic(); profile = keep.profile; levels = keep.levels; localMute = keep.mute; applyGains(); if(keep.wanted) startMusic(); }, 5200);
-      return true;
-    }
+    duck(on){ duckLevel = on ? .1 : 1; applyGains(); },
+    /* try a sound on this device, whatever the board settings are */
+    async test(name, p, l){ if(!(await unlock())) return false; const keep = {profile, levels:{...levels}, localMute};
+      profile = p === "game" ? "game" : "classic"; levels = {...levels, ...l, on:true}; localMute = false; applyGains(true); delete last[name];
+      play(name, name === "riser" ? {dur:4} : name === "tick" ? {sec:3} : {});
+      setTimeout(() => { profile = sched ? profile : keep.profile; if(!sched){ levels = keep.levels; localMute = keep.localMute; applyGains(); } }, name === "riser" ? 4500 : 2500);
+      return true; },
+    async previewMusic(p, l){ if(!(await unlock())) return false; this.setProfile(p); levels = {...levels, ...l, on:true}; localMute = false; applyGains(true); startMusic(); return true; }
   };
 })();
-const eventSound = () => { const d = S.event && S.event.sound; return {on: !d || d.on !== false, music: d && typeof d.music === "number" ? d.music : .4, sfx: d && typeof d.sfx === "number" ? d.sfx : .8}; };
+const SOUND_DEFAULTS = {on:true, music:.4, sfx:.8, profile:"auto", ticks:true, reveal:true, combo:true};
+const eventSound = () => { const d = (S.event && S.event.sound) || {}; const o = {...SOUND_DEFAULTS}; Object.keys(o).forEach(k => { if(d[k] !== undefined && d[k] !== null) o[k] = d[k]; }); o.on = o.on !== false; return o; };
+const soundProfile = (snd = eventSound()) => snd.profile === "classic" || snd.profile === "game" ? snd.profile : (isGame() ? "game" : "classic");
+const STYLE_NAME = p => p === "game" ? "Arcade" : "Classic";
 function boardSoundSync(){
-  Sound.setProfile(isGame() ? "game" : "classic");
-  Sound.setLevels(eventSound());
+  const ev = eventSound();
+  Sound.setProfile(soundProfile(ev));
+  Sound.setLevels({on:ev.on, music:ev.music, sfx:ev.sfx});
+  Sound.setOptions({ticks:ev.ticks, reveal:ev.reveal, combo:ev.combo});
   Sound.setLocalMute(store.get("boardMute", false));
   const b = document.getElementById("snd"); if(!b) return;
-  const ev = eventSound();
   const label = !Sound.supported ? "No sound on this device" : !ev.on ? "Sound off (host)" : !Sound.unlocked() ? "Enable sound" : store.get("boardMute", false) ? "Sound off" : "Sound on";
   // only touch the button when its state changes, so a tap is never lost to a refresh
   const icon = !ev.on || store.get("boardMute", false) || !Sound.unlocked() ? "off" : "on";
@@ -2303,6 +2490,73 @@ function wireSoundSettings(prefix, onChange){
       onChange(v);
     });
   });
+}
+
+/* ---------- Host tools: Sound page ---------- */
+const FX_LIST = [["objective","Objective cleared"],["streak","Combo streak"],["milestone","Milestone"],["judge","Judge scorecard"],["submit","Build submitted"],["overtake","Overtake"],["tick","Countdown tick"],["timesup","Time's up"],["riser","Reveal drumroll"],["fanfare","Winner fanfare"]];
+function soundPageHTML(){
+  const snd = eventSound(), auto = isGame() ? "game" : "classic", pct = v => Math.round(v * 100), prof = snd.profile || "auto";
+  const tog = (id, on, label, sub) => `<label class="sw"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><span class="sw-ui" aria-hidden="true"></span><span>${label}${sub ? `<small class="swsub">${sub}</small>` : ""}</span></label>`;
+  return `<div class="fill">
+    <div class="hcard"><div class="head"><h3>Leaderboard sound</h3><span class="state-pill ${snd.on ? "on" : ""}" id="sp-pill">${snd.on ? STYLE_NAME(soundProfile(snd)) + " sound" : "off"}</span></div>
+      <p class="sub">Music and effects play on the leaderboard screen only. Team and judge phones stay silent. On the projector, tap <b>Enable sound</b> once.</p>
+      ${tog("sp-on", snd.on, "Sound on the leaderboard screen")}</div>
+    <div class="hcard"><div class="head"><h3>Sound profile</h3></div>
+      <div class="profpick" role="radiogroup" aria-label="Sound profile">
+        ${[["auto", "Match the leaderboard", `Uses ${STYLE_NAME(auto)} for this event`], ["classic", "Classic", "Upbeat game-show groove, bright bells, applause"], ["game", "Arcade", "Fast chiptune, power-ups, combos and level-ups"]].map(([k, n, d]) => `<button type="button" role="radio" class="pp ${prof === k ? "sel" : ""}" data-prof="${k}" aria-checked="${prof === k}"><b>${n}</b><small>${d}</small></button>`).join("")}
+      </div></div>
+    <div class="hcard"><div class="head"><h3>Volume</h3></div>
+      <div class="sl"><label for="sp-music">Music</label><input type="range" id="sp-music" min="0" max="100" step="5" value="${pct(snd.music)}"><output id="sp-music-v">${pct(snd.music)}%</output></div>
+      <div class="sl"><label for="sp-sfx">Sound effects</label><input type="range" id="sp-sfx" min="0" max="100" step="5" value="${pct(snd.sfx)}"><output id="sp-sfx-v">${pct(snd.sfx)}%</output></div></div>
+    <div class="hcard"><div class="head"><h3>Extras</h3></div>
+      ${tog("sp-combo", snd.combo, "Combo pitch-up", "Objectives that land within a few seconds of each other climb the scale")}
+      ${tog("sp-ticks", snd.ticks, "Countdown ticks", "A tick each second for the last 10 seconds, more urgent in the last 3")}
+      ${tog("sp-reveal", snd.reveal, "Reveal drumroll and winner fanfare")}</div>
+    <div class="hcard"><div class="head"><h3>Try it on this device</h3><span class="state-pill">${STYLE_NAME(soundProfile(snd))}</span></div>
+      <p class="sub">Plays on the phone or laptop you're holding, not the projector.</p>
+      <div class="acts"><button class="btn sm ${Sound.musicOn() ? "" : "brand"}" id="sp-music-play">${Sound.musicOn() ? "Stop music" : "Play music"}</button></div>
+      <div class="fxgrid">${FX_LIST.map(([k, n]) => `<button type="button" class="fxb" data-fx="${k}">${n}</button>`).join("")}</div></div>
+  </div>`;
+}
+function readSoundPage(){
+  const g = id => document.getElementById(id);
+  if(!g("sp-on")) return null;
+  const sel = document.querySelector(".pp.sel");
+  return {on: g("sp-on").checked, music: +g("sp-music").value / 100, sfx: +g("sp-sfx").value / 100, profile: sel ? sel.dataset.prof : "auto",
+    combo: g("sp-combo").checked, ticks: g("sp-ticks").checked, reveal: g("sp-reveal").checked};
+}
+function wireSoundPage(){
+  if(!document.getElementById("sp-on")) return;
+  let saveT;
+  const refresh = v => {
+    ["music", "sfx"].forEach(x => { const o = document.getElementById(`sp-${x}-v`); if(o) o.textContent = Math.round(v[x] * 100) + "%"; });
+    document.querySelectorAll("#sp-music, #sp-sfx, .pp, #sp-combo, #sp-ticks, #sp-reveal").forEach(el => el.disabled = !v.on);
+    const pill = document.getElementById("sp-pill"); if(pill){ pill.textContent = v.on ? STYLE_NAME(soundProfile(v)) + " sound" : "off"; pill.classList.toggle("on", v.on); }
+    if(Sound.musicOn()){ Sound.setProfile(soundProfile(v)); Sound.setLevels({music:v.music, sfx:v.sfx}); }
+  };
+  const save = () => {
+    const v = readSoundPage(); if(!v) return; refresh(v);
+    clearTimeout(saveT); saveT = setTimeout(async () => {
+      const code = S.code, pw = hostPw(code); if(!pw) return;
+      const data = {...S.event, sound: v};
+      try{ if(!must(await S.sb.rpc("update_event", {p_code: code, p_password: pw, p_data: data}))){ toast("Your host password didn't match.", {color:"#FF6B7A"}); return; } if(S.code === code) S.event = data; toast("Sound settings saved. The projector updates in a moment."); }
+      catch(e){ console.warn(e); toast("Couldn't save the sound settings. Try again.", {color:"#FF6B7A"}); }
+    }, 600);
+  };
+  ["sp-on", "sp-music", "sp-sfx", "sp-combo", "sp-ticks", "sp-reveal"].forEach(id => document.getElementById(id).addEventListener("input", save));
+  document.querySelectorAll(".pp").forEach(b => b.addEventListener("click", () => { document.querySelectorAll(".pp").forEach(x => { x.classList.toggle("sel", x === b); x.setAttribute("aria-checked", x === b); }); save(); }));
+  refresh(readSoundPage());
+  document.getElementById("sp-music-play").addEventListener("click", async e => {
+    const b = e.currentTarget, v = readSoundPage();
+    if(Sound.musicOn()){ Sound.stopMusic(); b.textContent = "Play music"; b.classList.add("brand"); return; }
+    if(!(await Sound.previewMusic(soundProfile(v), {music: Math.max(v.music, .25), sfx: v.sfx}))){ toast("Sound isn't available on this device."); return; }
+    b.textContent = "Stop music"; b.classList.remove("brand");
+  });
+  document.querySelectorAll(".fxb").forEach(b => b.addEventListener("click", async () => {
+    const v = readSoundPage();
+    if(!(await Sound.test(b.dataset.fx, soundProfile(v), {music: v.music, sfx: Math.max(v.sfx, .3)}))) toast("Sound isn't available on this device.");
+    b.classList.remove("hitfx"); void b.offsetWidth; b.classList.add("hitfx");
+  }));
 }
 
 /* ---------- countdown timer ---------- */
@@ -2348,7 +2602,7 @@ function tickTimers(force){
     }
   }
   if(st.status !== "done" && S.timer && S.timer.endsAt && lastDoneKey === null) lastDoneKey = "";
-  if(S.view === "board" && st.status === "running" && st.left <= 10500){ const sec = Math.ceil(st.left / 1000); if(sec !== lastTickSec && sec > 0){ lastTickSec = sec; Sound.play("tick"); } }
+  if(S.view === "board" && st.status === "running" && st.left <= 10500){ const sec = Math.ceil(st.left / 1000); if(sec !== lastTickSec && sec > 0){ lastTickSec = sec; Sound.play("tick", {sec}); } }
   els.forEach(el => {
     el.classList.toggle("idle", st.status === "idle");
     el.closest(".tmr-panel")?.classList.toggle("idle", st.status === "idle");
@@ -2508,7 +2762,7 @@ function boardReveal(){
   document.querySelector(".race-ov")?.remove();
   const ov = document.createElement("div"); ov.className = "race-ov";
   ov.innerHTML = `<div class="race-stage"></div>`; document.body.appendChild(ov);
-  Sound.duck(true); Sound.play("riser", 7.2);
+  Sound.duck(true); Sound.play("riser", {dur:7.2});
   const finish = () => {
     Sound.duck(false);
     ov.style.transition = "opacity .6s"; ov.style.opacity = 0;

@@ -41,7 +41,7 @@ Create and Edit have a **Brief** step: an optional "Building for" client name an
 Create and Edit start with **Look**: pick the theme and the leaderboard style.
 
 - **Classic** (default): clean rows and scores.
-- **Gamified**: slanted power bars, a live feed of every event, and animated objective hits (a light streak hits the next block, which ignites with sparks), plus streaks, milestone stamps, overtake arrows and judge markers. Each team's row animates on its own, so bursts of updates play at the same time; updates to the same team play in order and speed up if they pile up. The feed shows the newest 8 events.
+- **Arcade**: slanted power bars, a live feed of every event, and animated objective hits (a light streak hits the next block, which ignites with sparks), plus streaks, milestone stamps, overtake arrows and judge markers. Each team's row animates on its own, so bursts of updates play at the same time; updates to the same team play in order and speed up if they pile up. The feed shows the newest 8 events.
 
 In both styles, objective blocks fill from the left no matter which objectives a team ticks.
 
@@ -49,7 +49,7 @@ In both styles, objective blocks fill from the left no matter which objectives a
 
 Music and sound effects are generated live in the browser (no audio files) and play **only on the leaderboard screen**, so team and judge phones stay silent.
 
-- **Two profiles that follow the leaderboard style.** Classic: a slow ambient pad with soft chimes. Gamified: a 112 bpm synth track with arcade-style effects.
-- **Effects:** objective cleared, milestone, streak (gamified), judge scorecard, build submitted, overtake / new leader, the last 10 seconds of the countdown, time's up, and the reveal (a riser during the race, then a winner fanfare). Music dips during the reveal. Repeated effects are rate-limited so bursts don't turn into noise.
-- **Settings:** Create/Edit → Look, or Host tools → Run event → Sound. Turn sound on/off and set Music and Sound effects volume; changes reach the projector within a second or two. "Preview" plays 5 seconds on the device you're holding.
+- **Two full soundtracks.** *Arcade*: a 140 bpm driving synth track (punchy kick, bass, arpeggios, a hooky lead) that moves through intro, verse, chorus and breakdown so it doesn't feel like a loop. *Classic*: a 120 bpm game-show groove (electric piano, brass stabs, upright bass). By default the profile follows the leaderboard style; you can pin either one.
+- **Arcade-style effects:** objective cleared (climbs in pitch as hits chain into combos), milestone, streak, judge scorecard, build submitted, overtake / new leader, the last 10 seconds of the countdown, time's up, and the reveal (a building riser during the race, then a winner fanfare). Music ducks under big moments. Repeated effects are rate-limited so bursts stay exciting instead of noisy.
+- **Host tools → Sound** (its own tab): sound on/off, profile (Auto / Classic / Arcade), Music and Effects volume, and extras (combo pitch climb, countdown ticks, reveal riser and fanfare). "Try it on this device" plays the music and every effect on the phone or laptop you're holding. Changes save automatically and reach the projector within a second or two. The basics are also on Create/Edit → Look.
 - **On the projector:** browsers need one tap before audio can play, so the leaderboard shows an **Enable sound** button (any tap on the screen also works). The same button mutes or unmutes that screen.
