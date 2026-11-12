@@ -1329,7 +1329,8 @@ V.create = () => {
   wireSoundSettings("cs", v => { draft.sound = {...draft.sound, ...v}; });
   on("#cs-preview", async () => {
     const v = readSoundSettings("cs") || draft.sound, p = draft.boardStyle === "game" ? "game" : "classic";
-    if(!(await Sound.previewMusic(p, {music: Math.max(v.music, .25), sfx: Math.max(v.sfx, .3)}))){ toast("Sound isn't available on this device."); return; }
+    if(!v.on || !(v.music > 0 || v.sfx > 0)){ toast(!v.on ? "Sound is switched off." : "Both volumes are at 0. Turn one up to hear the preview."); return; }
+    if(!(await Sound.previewMusic(p, {music: v.music, sfx: v.sfx}))){ toast("Sound isn't available on this device."); return; }
     [["objective", 700], ["objective", 1000], ["objective", 1300], ["milestone", 2300], ["judge", 3600]].forEach(([n, ms]) => setTimeout(() => Sound.play(n), ms));
     setTimeout(() => { if(S.view === "create") Sound.stopMusic(); }, 6000);
   });
@@ -2191,6 +2192,9 @@ function SoundCore(ctx, cfg = {}){
   const musicBus = ctx.createGain(); musicBus.connect(master);
   const pump = ctx.createGain(); pump.connect(musicBus);          // bass, pads and arps breathe with the kick
   const sfxBus = ctx.createGain(); sfxBus.connect(master);
+  // reverb and echo sends sit behind the same faders as their bus, so a fader at 0 is truly silent
+  const gate = dest => { const g = ctx.createGain(); g.connect(dest); return g; };
+  const sends = {music:{rev:gate(revIn), dly:gate(dlyIn)}, sfx:{rev:gate(revIn), dly:gate(dlyIn)}};
   const noiseBuf = (() => { const b = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), d = b.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random()*2 - 1; return b; })();
   let voices = 0;
   const clapBuf = (() => { const sr = ctx.sampleRate, len = Math.floor(sr * 3.2), b = ctx.createBuffer(2, len, sr);
@@ -2204,8 +2208,9 @@ function SoundCore(ctx, cfg = {}){
     let n = node;
     if(pan && hasPan){ const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); n.connect(p); n = p; }
     n.connect(bus);
-    if(rv){ const g = ctx.createGain(); g.gain.value = rv; n.connect(g); g.connect(revIn); }
-    if(dv){ const g = ctx.createGain(); g.gain.value = dv; n.connect(g); g.connect(dlyIn); }
+    const sd = bus === sfxBus ? sends.sfx : sends.music;
+    if(rv){ const g = ctx.createGain(); g.gain.value = rv; n.connect(g); g.connect(sd.rev); }
+    if(dv){ const g = ctx.createGain(); g.gain.value = dv; n.connect(g); g.connect(sd.dly); }
   }
   /* one synth voice. fm adds a modulator for bells and electric piano; vib adds delayed vibrato */
   function v({f, f2, glide, type = "sine", t, a = .004, d = .25, s = 0, hold = 0, r = .15, gain = .1, bus, pan, rev: rv, dly: dv, lp, lp2, q = .8, detune = 0, fm, vib}){
@@ -2424,7 +2429,7 @@ function SoundCore(ctx, cfg = {}){
     out(gn, t, t + dur, {rev:.2}); src.start(t); src.stop(t + dur + .1);
   }
   return {
-    musicBus, sfxBus, master,
+    musicBus, sfxBus, master, sends,
     stepDur: p => p === "game" ? 60 / ARC.bpm / 4 : 60 / CLS.bpm / 4,
     musicStep: (p, st, t) => (p === "game" ? arcadeStep : classicStep)(st, t),
     fx: (p, name, t, arg) => { const f = (FX[p] || FX.classic)[name]; if(f) f(t, arg || {}); },
@@ -2447,11 +2452,15 @@ const Sound = (() => {
     if(!ctx) return;
     const t = ctx.currentTime, on = levels.on && !localMute;
     core.master.gain.setTargetAtTime(on ? 1 : 0, t, instant ? .01 : .1);
-    core.musicBus.gain.setTargetAtTime(curve(levels.music) * .9 * duckLevel, t, instant ? .01 : .25);
-    core.sfxBus.gain.setTargetAtTime(curve(levels.sfx) * 1.1, t, .04);
+    const mg = curve(levels.music) * .9 * duckLevel, sg = curve(levels.sfx) * 1.1;
+    [core.musicBus, core.sends.music.rev, core.sends.music.dly].forEach(n => n.gain.setTargetAtTime(mg, t, instant ? .01 : .25));
+    [core.sfxBus, core.sends.sfx.rev, core.sends.sfx.dly].forEach(n => n.gain.setTargetAtTime(sg, t, .04));
+    // music at 0 means no music at all: stop scheduling it, and pick it back up when the fader comes up
+    if(musicWanted && !(levels.music > 0) && sched){ clearInterval(sched); sched = null; }
+    else if(musicWanted && levels.music > 0 && !sched) startMusic();
   }
   function play(name, arg = {}){
-    if(!ctx || ctx.state !== "running" || !levels.on || localMute) return;
+    if(!ctx || ctx.state !== "running" || !levels.on || localMute || !(levels.sfx > 0)) return;
     if(name === "tick" && !opts.ticks) return;
     if((name === "riser" || name === "fanfare") && !opts.reveal) return;
     const now = ctx.currentTime;
@@ -2466,7 +2475,7 @@ const Sound = (() => {
   }
   function startMusic(){
     musicWanted = true;
-    if(!ctx || ctx.state !== "running" || sched) return;
+    if(!ctx || ctx.state !== "running" || sched || !(levels.music > 0)) return;
     nextT = ctx.currentTime + .1; step = 0;
     sched = setInterval(() => { if(!ctx) return; while(nextT < ctx.currentTime + .18){ const sd = core.musicStep(profile, step, nextT); nextT += sd; step++; } }, 25);
   }
@@ -2480,7 +2489,7 @@ const Sound = (() => {
   return {
     supported: !!AC,
     unlocked: () => !!ctx && ctx.state === "running",
-    musicOn: () => !!sched,
+    musicOn: () => musicWanted,
     unlock, play, startMusic, stopMusic,
     profile: () => profile,
     setProfile(p){ p = p === "game" ? "game" : "classic"; if(p === profile) return; profile = p; if(sched){ clearInterval(sched); sched = null; if(musicWanted) startMusic(); } },
@@ -2645,12 +2654,14 @@ function wireSoundPage(){
   document.getElementById("sp-music-play").addEventListener("click", async e => {
     const b = e.currentTarget, v = readSoundPage();
     if(Sound.musicOn()){ Sound.stopMusic(); b.textContent = "Play music"; b.classList.add("brand"); return; }
-    if(!(await Sound.previewMusic(soundProfile(v), {music: Math.max(v.music, .25), sfx: v.sfx}))){ toast("Sound isn't available on this device."); return; }
+    if(!(v.music > 0)){ toast("Music volume is at 0. Turn it up to hear the music."); return; }
+    if(!(await Sound.previewMusic(soundProfile(v), {music: v.music, sfx: v.sfx}))){ toast("Sound isn't available on this device."); return; }
     b.textContent = "Stop music"; b.classList.remove("brand");
   });
   document.querySelectorAll(".fxb").forEach(b => b.addEventListener("click", async () => {
     const v = readSoundPage();
-    if(!(await Sound.test(b.dataset.fx, soundProfile(v), {music: v.music, sfx: Math.max(v.sfx, .3)}))) toast("Sound isn't available on this device.");
+    if(!(v.sfx > 0)){ toast("Effects volume is at 0. Turn it up to hear the effects."); return; }
+    if(!(await Sound.test(b.dataset.fx, soundProfile(v), {music: v.music, sfx: v.sfx}))) toast("Sound isn't available on this device.");
     b.classList.remove("hitfx"); void b.offsetWidth; b.classList.add("hitfx");
   }));
 }
