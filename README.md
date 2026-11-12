@@ -4,7 +4,7 @@ Live hackathon judging, team checklists and an animated projector leaderboard. O
 
 ## Go live
 
-1. **Database.** In Supabase, open SQL Editor → New query, and run the files in `supabase/` in order: `01-setup.sql`, `02-end-and-cleanup.sql`, `03-inactive-7-days.sql`, `04-judge-codes.sql`, `05-keep-event.sql`, `06-inactive-14-days.sql`, `07-timer-and-reveal.sql`.
+1. **Database.** In Supabase, open SQL Editor → New query, and run the files in `supabase/` in order: `01-setup.sql`, `02-end-and-cleanup.sql`, `03-inactive-7-days.sql`, `04-judge-codes.sql`, `05-keep-event.sql`, `06-inactive-14-days.sql`, `07-timer-and-reveal.sql`, `08-judges.sql`.
 2. **Key.** In Supabase, open Project Settings → API Keys and copy the **anon / publishable** key. Paste it into `index.html` where it says `PASTE_YOUR_ANON_KEY_HERE`. (This key is meant to be public. Never paste the `service_role` / secret key.)
 3. **Publish.** Create a public GitHub repo, upload `index.html`, then open Settings → Pages → Source: "Deploy from a branch" → `main` / root → Save. The site is live at `https://<your-username>.github.io/<repo>/` within a couple of minutes.
 
@@ -16,6 +16,14 @@ Live hackathon judging, team checklists and an animated projector leaderboard. O
 - **Host tools**: open from the leaderboard, the role screen, or Join → "Host tools". The host password is asked for every time, kept only while you're inside Host tools in that browser tab, and never saved on the device. Leaving Host tools locks it again, so a shared projector laptop stays safe.
 
 Host passwords are stored hashed in a table the website can't read, and edits are checked inside the database.
+
+## Judges
+
+Hosts never set judges up in advance; the only judging setup is the questions. A judge appears in **Host tools → Judges** as soon as they sign in with the judge code, and every team on the leaderboard gets one judge box per judge in the event (before anyone joins, it says "No judges yet"). From the Judges tab the host can:
+
+- **Rename** a judge (fixes the name on their scorecards and team results).
+- **Remove** a judge: their scorecards are deleted, their box comes off the leaderboard, their phone is signed out, and they can't sign back in.
+- **Let back in** a removed judge.
 
 ## Ending and cleanup
 

@@ -431,7 +431,16 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .lb-tools .snd{display:inline-flex;align-items:center;gap:8px}
 @media (max-width:480px){.sl{grid-template-columns:90px minmax(0,1fr) 40px}}
 /* Host tools: Sound page */
-.tabs{grid-template-columns:repeat(4,1fr)}
+.tabs{grid-template-columns:repeat(5,1fr)}
+.tabs button{padding:0 2px;font-size:clamp(11px,3.2vw,13px)}
+.jlist{display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0}
+.jrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:calc(var(--r) * .6);background:var(--field);border:1px solid var(--line)}
+.jrow.off{opacity:.55}
+.jrow .jav{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--panel-2);border:1px solid var(--line-2);font:700 12px/1 var(--f-mono);color:var(--brand)}
+.jrow .grow{flex:1 1 auto;min-width:0}.jrow .grow b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jrow .grow small{color:var(--muted);font-size:12px}
+.jrow .jacts{display:flex;gap:6px;flex:none}
+@media (max-width:560px){.jrow{flex-wrap:wrap}.jrow .grow{flex:1 1 0}.jrow .jacts{width:100%;padding-left:44px}.jrow .jacts .btn{flex:1}}
 @media (max-width:420px){.tabs button{font-size:12px;padding:0 2px}}
 .profpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pp{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border-radius:calc(var(--r) * .7);border:2px solid var(--line-2);background:var(--field)}
@@ -526,6 +535,7 @@ textarea{resize:vertical;min-height:88px;line-height:1.45}
 .gpips i.pop{animation:gpip .8s var(--spring)}
 @keyframes gpip{0%{transform:skewX(-20deg) scale(2.6);box-shadow:0 0 16px var(--brand)}}
 .gpips small{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;color:var(--muted);margin-right:6px}
+.gpips small.none{display:inline!important;margin:0;opacity:.8}
 .gfeed{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line);background:color-mix(in srgb,var(--field) 80%,transparent);clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)}
 .gfeed-h{flex:none;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;color:var(--muted)}
 .grate{color:var(--brand);letter-spacing:.08em}
@@ -845,25 +855,52 @@ async function loadScores(code){
   const prevCounts = S.scoreCounts; S.scoreCounts = counts;
   const prev = S.scores; S.scores = sc; dataChanged("scores", prev, prevCounts); S.scoresLoaded = true;
 }
+/* judges sign themselves in; the host can rename, remove or restore them (migration 08) */
+async function loadJudges(code){
+  const r = await S.sb.from("judges").select("id,name,joined_at,removed").eq("event_code", code);
+  if(S.code !== code) return;
+  if(r.error){ S.judgesOK = false; return; }                                // older database without the judges table
+  const rows = (r.data || []).sort((a,b) => String(a.joined_at).localeCompare(String(b.joined_at)));
+  const sig = JSON.stringify(rows), changed = sig !== S.judgesSig;
+  S.judges = rows; S.judgesOK = true; S.judgesSig = sig;
+  if(S.session.role === "judge" && S.session.judgeName && judgeCode(code)){
+    const me = myJudge();
+    if(me && me.removed){ kickJudge(); return; }
+    if(!me && !S.joinTried){ S.joinTried = true; S.sb.rpc("join_judge", {p_code: code, p_judge_code: judgeCode(code), p_id: slug(S.session.judgeName), p_name: S.session.judgeName}).then(x => { if(x.data === "removed") kickJudge(); }); }
+  }
+  if(changed) dataChanged("judges");
+}
+const activeJudges = () => S.judges.filter(j => !j.removed);
+// how many judge boxes each team gets: the judges in the event (never fewer than have scored a team)
+const judgeSlots = () => Math.max(S.judgesOK ? activeJudges().length : 0, 0, ...teams().map(t => judgesFor(t)));
+const myJudge = () => S.session.judgeName ? S.judges.find(j => j.id === slug(S.session.judgeName)) || null : null;
+const myJudgeName = () => (myJudge() || {}).name || S.session.judgeName;
+function kickJudge(){
+  if(S.session.role !== "judge") return;
+  saveSession({judgeName:null, judgeTeam:null}); S.joinTried = false;
+  modal({warn:true, title:"You've been removed from judging", body:`<p>The host removed you as a judge for this event, and your scorecards were cleared. If this is a mistake, ask the host to let you back in.</p>`, actions:[{label:"OK"}]});
+  go("judgeName");
+}
 const debounced = {};
 function soon(key, fn, ms=120){ clearTimeout(debounced[key]); debounced[key] = setTimeout(fn, ms); }
 function connectEvent(code){
   if(S.code === code) return;
   disconnect();
-  Object.assign(S, {code, event:null, ended:false, revealed:false, timer:null, scoreCounts:{}, eventSig:null, eventLoaded:false, progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false, slow:false, pendingProg:{}});
+  Object.assign(S, {code, judges:[], judgesOK:false, judgesSig:"", joinTried:false, event:null, ended:false, revealed:false, timer:null, scoreCounts:{}, eventSig:null, eventLoaded:false, progress:{}, scores:{}, progressLoaded:false, scoresLoaded:false, slow:false, pendingProg:{}});
   const timer = setTimeout(() => { if(!S.eventLoaded){ S.slow = true; render(); } }, 10000);
   const all = () => {
     loadEvent(code).then(() => clearTimeout(timer)).catch(() => { clearTimeout(timer); if(!S.eventLoaded){ S.eventLoaded = true; S.event = null; render(); } });
-    loadProgress(code).catch(() => {}); loadScores(code).catch(() => {});
+    loadProgress(code).catch(() => {}); loadScores(code).catch(() => {}); loadJudges(code).catch(() => {});
   };
   const ch = S.sb.channel("event-" + code)
     .on("postgres_changes", {event:"*", schema:"public", table:"events",   filter:`code=eq.${code}`},       () => { soon("ev", () => loadEvent(code).catch(()=>{})); soon("sc", () => loadScores(code).catch(()=>{}), 250); })
     .on("postgres_changes", {event:"*", schema:"public", table:"progress", filter:`event_code=eq.${code}`}, () => soon("pr", () => loadProgress(code).catch(()=>{})))
     .on("postgres_changes", {event:"*", schema:"public", table:"scores",   filter:`event_code=eq.${code}`}, () => soon("sc", () => loadScores(code).catch(()=>{})))
+    .on("postgres_changes", {event:"*", schema:"public", table:"judges",   filter:`event_code=eq.${code}`}, () => soon("jd", () => loadJudges(code).catch(()=>{})))
     .subscribe(status => { if(status === "SUBSCRIBED") all(); });
   all();
   // safety net in case a realtime message is missed (sleeping laptop, flaky wifi)
-  const poll = setInterval(() => { if(!document.hidden){ loadProgress(code).catch(()=>{}); loadScores(code).catch(()=>{}); } }, 20000);
+  const poll = setInterval(() => { if(!document.hidden){ loadProgress(code).catch(()=>{}); loadScores(code).catch(()=>{}); loadJudges(code).catch(()=>{}); } }, 20000);
   const vis = () => { if(!document.hidden) all(); };
   document.addEventListener("visibilitychange", vis);
   S.unsubs.push(() => S.sb.removeChannel(ch), () => clearInterval(poll), () => document.removeEventListener("visibilitychange", vis));
@@ -1024,6 +1061,12 @@ function eventChanged(){
   render();
 }
 function dataChanged(kind, prev, prevCounts){
+  if(kind === "judges"){
+    if(S.view === "board" && boardState) boardUpdate("judges", S.scores, S.scoreCounts);
+    else if(S.view === "hostLive" && !document.querySelector(".modal")) V.hostLive();
+    else if(S.view === "teamBoard") V.teamBoard();
+    return;
+  }
   if(S.view === "board"){ boardUpdate(kind, prev, prevCounts); return; }
   if(S.view === "teamBoard" && kind === "scores"){ if(JSON.stringify(prevCounts) !== JSON.stringify(S.scoreCounts) || S.revealed) V.teamBoard(); return; }
   if(S.ended && !["board","hostLive","create","home","join","hostLogin"].includes(S.view)){ render(); return; }
@@ -1245,7 +1288,7 @@ V.create = () => {
     `<p class="muted" style="font-size:13px;flex:none">Shown at the top of the leaderboard so anyone in the room can see what teams are building. Optional, up to 4. Each one is for all teams unless you pick specific teams.</p>
       <div class="fill"><div class="panel stack"><div><label class="lbl" for="bfor">Building for (optional)</label><input type="text" id="bfor" maxlength="60" value="${esc(draft.buildingFor||"")}" placeholder="e.g. Client or partner name"></div></div>
         ${dlHTML}${draft.deliverables.length < 4 ? `<button class="btn ghost block" id="addD" type="button">+ Add deliverable</button>` : ""}</div>`,
-    `<div class="spread" style="flex:none"><p class="muted" style="font-size:13px">Placeholders for now. Swap in your real questions any time.</p><span class="chip">max ${draft.questions.length*10} per judge</span></div>
+    `<div class="spread" style="flex:none"><p class="muted" style="font-size:13px">Placeholders for now. Swap in your real questions any time. Judges don't need setting up: they join with the judge code, and you manage them in Host tools → Judges.</p><span class="chip">max ${draft.questions.length*10} per judge</span></div>
       <div class="fill">${qHTML}<button class="btn ghost block" id="addQ" type="button">+ Add question</button></div>`
   ];
   $app.innerHTML = `<div class="wrap">
@@ -1373,7 +1416,7 @@ V.hostLogin = () => {
 V.hostLive = () => {
   if(!needEvent()) return;
   const ts = teams(), qs = questions(), tab = S.viewCtx.tab || "share", tst = timerState();
-  const judges = new Set(Object.values(S.scores).map(s => s.judge)).size, cards = submittedCount();
+  const judges = S.judgesOK ? activeJudges().length : new Set(Object.values(S.scores).map(s => s.judge)).size, cards = submittedCount();
   const soon = S.expiresAt && S.expiresAt - Date.now() < 2*DAY;
   const status = S.ended ? "Event ended" : S.viewCtx.fresh ? "Your event is live" : "Live";
   const share = `<div class="fill">
@@ -1408,8 +1451,8 @@ V.hostLive = () => {
   $app.innerHTML = `${barHTML()}<div class="wrap">
     <div class="nav-top"><button class="back" id="exit">← Exit host tools</button><button class="btn sm brand" id="board">Open leaderboard</button></div>
     <div class="spread" style="flex:none"><h2>Host tools</h2><span class="${S.ended ? "state-pill" : "live"}">${esc(status.toUpperCase())}</span></div>
-    <div class="tabs" role="tablist">${[["share","Share codes"],["run","Run event"],["status","Live status"],["sound","Sound"]].map(([k,l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>
-    ${tab === "share" ? share : tab === "run" ? run : tab === "sound" ? soundPageHTML() : stat}
+    <div class="tabs" role="tablist">${[["share","Codes"],["run","Run event"],["status","Status"],["judges","Judges"],["sound","Sound"]].map(([k,l]) => `<button role="tab" data-tab="${k}" aria-selected="${tab===k}">${l}</button>`).join("")}</div>
+    ${tab === "share" ? share : tab === "run" ? run : tab === "sound" ? soundPageHTML() : tab === "judges" ? judgesPageHTML() : stat}
   </div>`;
   onAll("[data-tab]", el => { S.viewCtx.tab = el.dataset.tab; V.hostLive(); });
   on("#copylink", async () => { try{ await navigator.clipboard.writeText(joinURL(S.code)); toast("Join link copied"); }catch{ toast("Join link: " + joinURL(S.code), {ms:8000}); } });
@@ -1453,7 +1496,7 @@ V.hostLive = () => {
   on("#keep", () => keepEvent(S.code));
   tickTimers();
   on("#tmrbtn", timerModal);
-  wireSoundPage();
+  wireSoundPage(); wireJudgesPage();
   on("#reveal", () => {
     const counts = teams().map(t => `<li><b style="color:var(--text)">${esc(t.name)}</b> · ${judgesFor(t)} judge scorecard${judgesFor(t)===1?"":"s"}</li>`).join("");
     if(S.revealed) return modal({title:"Hide scores again?", body:`<p>The leaderboard and team screens go back to showing only how many judges have scored. You can reveal again any time.</p>`,
@@ -1597,8 +1640,13 @@ V.judgeName = () => {
     er.textContent = ""; busy(btn, true, "Checking your judge code");
     try{ if(!must(await S.sb.rpc("verify_judge", {p_code: S.code, p_judge_code: jc}))){ busy(btn, false); er.textContent = "That judge code isn't right. Check it with your host."; return; } }
     catch{ busy(btn, false); er.textContent = "Couldn't check the code. Check your connection and try again."; return; }
-    store.set("judge:"+S.code, jc);
-    saveSession({judgeName: `${fn} ${ln}`}); go("judgeTeams");
+    const full = `${fn} ${ln}`;
+    try{
+      const j = await S.sb.rpc("join_judge", {p_code: S.code, p_judge_code: jc, p_id: slug(full), p_name: full});
+      if(j.data === "removed"){ busy(btn, false); er.textContent = "The host removed you from judging this event. Ask them to let you back in."; return; }
+    }catch{}                                                                        // older database: carry on
+    store.set("judge:"+S.code, jc); S.joinTried = true;
+    saveSession({judgeName: full}); loadJudges(S.code).catch(() => {}); go("judgeTeams");
   }, "submit");
 };
 const scoreId = teamId => `${slug(S.session.judgeName)}~${teamId}`;
@@ -1609,7 +1657,7 @@ V.judgeTeams = () => {
   const qn = questions().length;
   $app.innerHTML = `${barHTML()}<div class="wrap">
     <div class="spread"><button class="back" id="bk">← Choose role</button><button class="back" id="nm">Switch judge</button></div>
-    <div class="stack"><p class="eyebrow">Judge · ${esc(S.session.judgeName)}</p><h2>Pick a team to score</h2></div>
+    <div class="stack"><p class="eyebrow">Judge · ${esc(myJudgeName())}</p><h2>Pick a team to score</h2></div>
     <div class="fill">${teams().map((t,i) => { const c = myCard(t.id), answered = c ? Object.keys(c.scores||{}).length : 0, p = teamProgress(t), col = teamColor(t,i); return `
       <button class="pick" data-id="${esc(t.id)}"><span class="swatch" style="width:16px;height:16px;background:${esc(col)}"></span>
       <span class="grow"><b>${esc(t.name)}</b><small class="muted">${p.finished?"Build complete":`${p.n}/${p.total} objectives done`}</small></span>
@@ -1640,6 +1688,7 @@ V.judgeScore = () => {
     const code = S.code;
     queueWrite(`score:${id}`, async () => {
       const r = await S.sb.rpc("submit_score", {p_code: code, p_judge_code: judgeCode(code) || "", p_id: id, p_judge: body.judge, p_team: body.teamId, p_scores: body.scores, p_submitted: body.submitted, p_total: body.total});
+      if(r.error && /removed by host/i.test(r.error.message || "")){ store.del("card:"+code+":"+id); kickJudge(); return; }
       if(r.error && /judge code/i.test(r.error.message || "")){ store.del("judge:"+code); toast("Your judge code changed. Ask your host for the new one.", {color:"#FF6B7A", ms:7000}); go("judgeName"); return; }
       must(r);
     });
@@ -1834,7 +1883,8 @@ function boardRender(first, eventEdit){
     el.querySelector(".segwrap").innerHTML = segsHTML(r.t, color, pop && pop.ids);
     el.querySelector(".lprog small").textContent = `${r.p.n}/${r.p.total} objectives`;
     const jn = judgesFor(r.t), num = el.querySelector(".num");
-    el.querySelector(".lscore small").textContent = hidden ? `${jn} judge${jn===1?"":"s"} in · hidden` : `${jn} judge${jn===1?"":"s"}`;
+    const jt = judgeSlots();
+    el.querySelector(".lscore small").textContent = !jt ? "No judges yet" : hidden ? `${jn} of ${jt} judge${jt===1?"":"s"} in · hidden` : `${jn} judge${jn===1?"":"s"}`;
     el.classList.toggle("veil", veiled);
     num.classList.toggle("hid", hidden);
     if(hidden){ num.textContent = "???"; boardState.shown.set(id, 0); }
@@ -1887,7 +1937,7 @@ const GICON = {
 };
 const gWait = ms => new Promise(r => setTimeout(r, REDUCED ? 0 : ms));
 const gAgo = ts => { if(!ts) return ""; const s = Math.round((Date.now() - ts)/1000); return s < 10 ? "just now" : s < 60 ? `${s}s ago` : `${Math.round(s/60)}m ago`; };
-const gSlots = () => Math.max(3, ...teams().map(t => judgesFor(t)));
+const gSlots = () => judgeSlots();
 
 function gameRender(first){
   const st = boardState, stage = document.getElementById("stage"); if(!stage || !st) return;
@@ -1947,7 +1997,7 @@ function gPaint(el, t, rankIdx){
   // score
   const q = el.querySelector(".gq"), jn = st.shownJ.get(t.id) || 0, slots = gSlots();
   const pips = el.querySelector(".gpips");
-  if(pips.children.length !== slots + 1) pips.innerHTML = `<small>JUDGES</small>` + Array.from({length: slots}, () => "<i></i>").join("");
+  if(pips.dataset.n !== String(slots)){ pips.dataset.n = slots; pips.innerHTML = slots ? `<small>JUDGES</small>` + Array.from({length: slots}, () => "<i></i>").join("") : `<small class="none">NO JUDGES YET</small>`; }
   [...pips.querySelectorAll("i")].forEach((b,k) => b.classList.toggle("on", k < jn));
   if(!S.revealed){ q.className = "gq hid"; q.innerHTML = `${GICON.lock}???`; st.shown.set(t.id, 0); }
   else if(st.revealing){ q.className = "gq hid"; q.textContent = String(teamScore(t).sum).replace(/\d/g, "0"); }
@@ -2462,7 +2512,8 @@ function boardSoundSync(){
   // only touch the button when its state changes, so a tap is never lost to a refresh
   const icon = !ev.on || store.get("boardMute", false) || !Sound.unlocked() ? "off" : "on";
   if(b.dataset.k !== label){ b.dataset.k = label; b.innerHTML = `${ICONS_SND[icon]}<span>${label}</span>`; }
-  b.classList.toggle("brand", Sound.supported && ev.on && !Sound.unlocked());
+  const hot = Sound.supported && ev.on && !Sound.unlocked();
+  b.classList.toggle("brand", hot); b.classList.toggle("ghost", !hot);
   b.disabled = !Sound.supported || !ev.on;
 }
 const ICONS_SND = {
@@ -2494,6 +2545,51 @@ function wireSoundSettings(prefix, onChange){
 
 /* ---------- Host tools: Sound page ---------- */
 const FX_LIST = [["objective","Objective cleared"],["streak","Combo streak"],["milestone","Milestone"],["judge","Judge scorecard"],["submit","Build submitted"],["overtake","Overtake"],["tick","Countdown tick"],["timesup","Time's up"],["riser","Reveal drumroll"],["fanfare","Winner fanfare"]];
+/* ----- Host tools → Judges ----- */
+function judgesPageHTML(){
+  const ts = teams(), qs = questions();
+  if(!S.judgesOK) return `<div class="fill"><div class="hcard"><div class="head"><h3>Judges</h3></div><p class="sub">Judge management needs a quick database update. Run <b>supabase/08-judges.sql</b> in the Supabase SQL Editor, then reload this page.</p></div></div>`;
+  const act = activeJudges(), gone = S.judges.filter(j => j.removed);
+  const cardsOf = j => Object.entries(S.scores).filter(([id]) => id.split("~")[0] === j.id).map(([,c]) => c);
+  const ini = n => String(n||"?").split(/\s+/).map(w => w[0] || "").join("").slice(0,2).toUpperCase();
+  const row = j => {
+    const cs = cardsOf(j), done = cs.filter(c => c.submitted).length, wip = cs.filter(c => !c.submitted && Object.keys(c.scores||{}).length).length;
+    const sub = j.removed ? "Removed · can't score" : `${done} of ${ts.length} team${ts.length===1?"":"s"} scored${wip ? ` · ${wip} in progress` : ""} · joined ${agoText(j.joined_at)}`;
+    return `<div class="jrow ${j.removed?"off":""}"><span class="jav" aria-hidden="true">${esc(ini(j.name))}</span>
+      <span class="grow"><b>${esc(j.name)}</b><small>${sub}</small></span>
+      <span class="jacts">${j.removed
+        ? `<button class="btn sm" data-jrestore="${esc(j.id)}">Let back in</button>`
+        : `<button class="btn sm ghost" data-jrename="${esc(j.id)}" aria-label="Rename ${esc(j.name)}">Rename</button><button class="btn sm ghost" data-jremove="${esc(j.id)}" aria-label="Remove ${esc(j.name)}">Remove</button>`}</span></div>`;
+  };
+  const cards = act.reduce((a,j) => a + cardsOf(j).filter(c => c.submitted).length, 0);
+  return `<div class="fill">
+    <div class="hcard" style="flex:1 1 auto;min-height:0">
+      <div class="head"><h3>Judges</h3><span class="state-pill ${act.length?"on":""}">${act.length} judge${act.length===1?"":"s"}</span></div>
+      <p class="sub">${act.length ? `${cards} of ${act.length * ts.length} scorecards in. ` : ""}Judges appear here as soon as they sign in with the judge code. Each judge adds a box to every team on the leaderboard.</p>
+      ${S.judges.length ? `<div class="jlist">${act.map(row).join("")}${gone.map(row).join("")}</div>`
+        : `<div class="notice">No judges yet. Share the judge code from the <b>Codes</b> tab and they'll show up here live.</div>`}
+    </div></div>`;
+}
+function agoText(t){
+  const m = Math.max(0, Math.round((Date.now() - new Date(t).getTime()) / 60000));
+  return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m/60)} hr ago` : `${Math.round(m/1440)} day${Math.round(m/1440)===1?"":"s"} ago`;
+}
+function wireJudgesPage(){
+  const call = async (fn, args, okMsg) => {
+    const pw = hostPw(S.code);
+    try{ const ok = pw && must(await S.sb.rpc(fn, {p_code: S.code, p_password: pw, ...args})); if(!ok){ toast("Your host password didn't match. Sign in to host tools again.", {color:"#FF6B7A"}); return; } toast(okMsg); }
+    catch(e){ console.warn(e); toast("Couldn't update the judge. Check your connection and try again.", {color:"#FF6B7A"}); return; }
+    await Promise.all([loadJudges(S.code), loadScores(S.code)]).catch(() => {}); if(S.view === "hostLive") V.hostLive();
+  };
+  const find = id => S.judges.find(j => j.id === id) || {name:"this judge"};
+  onAll("[data-jremove]", el => { const j = find(el.dataset.jremove), n = Object.keys(S.scores).filter(id => id.split("~")[0] === j.id).length;
+    modal({warn:true, title:`Remove ${esc(j.name)}?`, body:`<p>Their ${n} scorecard${n===1?"":"s"} ${n===1?"is":"are"} deleted, their box comes off the leaderboard, and they can't score again unless you let them back in.</p>`,
+      actions:[{label:"Keep judge"}, {label:"Remove judge", danger:true, run: () => call("remove_judge", {p_id: j.id}, `${j.name} removed`)}]}); });
+  onAll("[data-jrestore]", el => { const j = find(el.dataset.jrestore); call("restore_judge", {p_id: j.id}, `${j.name} can judge again`); });
+  onAll("[data-jrename]", el => { const j = find(el.dataset.jrename);
+    modal({title:"Rename judge", body:`<p>Fix how this judge's name shows on scorecards and team results.</p><div><label class="lbl" for="jn-new">Name</label><input type="text" id="jn-new" maxlength="80" value="${esc(j.name)}"></div>`,
+      actions:[{label:"Cancel"}, {label:"Save name", primary:true, run: v => { const nm = (v["jn-new"]||"").trim(); if(nm && nm !== j.name) call("rename_judge", {p_id: j.id, p_name: nm}, "Name updated"); }}]}); });
+}
 function soundPageHTML(){
   const snd = eventSound(), auto = isGame() ? "game" : "classic", pct = v => Math.round(v * 100), prof = snd.profile || "auto";
   const tog = (id, on, label, sub) => `<label class="sw"><input type="checkbox" id="${id}" ${on ? "checked" : ""}><span class="sw-ui" aria-hidden="true"></span><span>${label}${sub ? `<small class="swsub">${sub}</small>` : ""}</span></label>`;
