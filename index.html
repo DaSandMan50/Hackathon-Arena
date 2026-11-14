@@ -1004,7 +1004,12 @@ function clearLand(){ landTimers.forEach(t => { clearInterval(t); clearTimeout(t
 /* ---------- derived ---------- */
 const teams = () => (S.event && Array.isArray(S.event.teams)) ? S.event.teams : [];
 const questions = () => (S.event && Array.isArray(S.event.questions)) ? S.event.questions : [];
-const teamColor = (t, i) => { const p = THEMES[SKIN].teams; return p[i % p.length]; };
+const teamColor = (t, i) => {
+  const p = THEMES[SKIN].teams;
+  // an animation can hold an older copy of the team after the data refreshes, so fall back to finding it by id
+  if(!(i >= 0) && t) i = teams().findIndex(x => x.id === t.id);
+  return p[Math.max(0, i) % p.length];
+};
 const orgName = () => (S.event && S.event.orgName) || "";
 function doneSet(t){ const d = (S.progress[t.id]||{}).done || {}; return new Set((t.objectives||[]).filter(o => d[o.id]).map(o => o.id)); }
 function teamProgress(t){
@@ -1977,7 +1982,8 @@ function gLaneEl(t){
 }
 function gPaint(el, t, rankIdx){
   if(!el) return;
-  const st = boardState, i = teams().indexOf(t), objs = t.objectives || [], total = objs.length;
+  t = teams().find(x => x.id === t.id) || t;            // always paint the latest copy of the team
+  const st = boardState, i = teams().findIndex(x => x.id === t.id), objs = t.objectives || [], total = objs.length;
   const n = Math.min(st.shownDone.get(t.id) || 0, total), p = teamProgress(t);
   el.style.setProperty("--tc", teamColor(t, i));
   if(!el.querySelector(".grank b").textContent) el.querySelector(".grank b").textContent = rankIdx + 1;
